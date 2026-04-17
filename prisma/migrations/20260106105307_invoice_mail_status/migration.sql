@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Invoice" ADD COLUMN     "emailSent" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "emailSentAt" TIMESTAMP(3),
+ADD COLUMN     "status" TEXT NOT NULL DEFAULT 'DRAFT';

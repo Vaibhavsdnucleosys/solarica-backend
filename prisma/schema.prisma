@@ -1,0 +1,1282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  email          String           @unique
+  password       String
+  roleId         String
+  createdAt      DateTime         @default(now())
+  salesTarget    Float            @default(0)
+  name           String
+  phone          String?
+  isActive       Boolean          @default(true)
+  ownedCompanies Company[]        @relation("CompanyOwner")
+  companyAccess  CompanyUser[]
+  invoices       Invoice[]        @relation("InvoiceCreator")
+  Lead           Lead[]           @relation("LeadCreator")
+  paymentProofs  PaymentProof[]
+  quotations     Quotation[]      @relation("QuotationCreator")
+  Task           Task[]           @relation("TaskCreator")
+  TaskAssignment TaskAssignment[] @relation("TaskAssignee")
+  role           Role             @relation(fields: [roleId], references: [id])
+  workOrders     WorkOrder[]      @relation("WorkOrderCreator")
+  worker         Worker?
+}
+
+model Role {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Worker {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  company      String?
+  location     String?
+  accessGrants String[]
+  createdAt    DateTime @default(now())
+  userId       String?  @unique
+  teamId       String?
+  leadingTeam  Team?    @relation("TeamLeader")
+  team         Team?    @relation("TeamMembers", fields: [teamId], references: [id])
+  user         User?    @relation(fields: [userId], references: [id])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  createdAt DateTime @default(now())
+  leaderId  String   @unique
+  company   String   @default("Solarica Energy India Pvt Ltd")
+  leader    Worker   @relation("TeamLeader", fields: [leaderId], references: [id])
+  workers   Worker[] @relation("TeamMembers")
+}
+
+model Lead {
+  id             String   @id @default(cuid())
+  name           String
+  company        String
+  email          String
+  phone          String
+  source         String
+  status         String
+  estimatedValue Float?
+  notes          String?
+   customerType   String? 
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  createdById    String
+  createdBy      User     @relation("LeadCreator", fields: [createdById], references: [id])
+}
+
+model Quotation {
+  id               String          @id @default(cuid())
+  companyName      String
+  companyEmail     String
+  pdfFilePath      String?
+  status           String          @default("DRAFT")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  createdById      String
+  emailSent        Boolean         @default(false)
+  emailSentAt      DateTime?
+  companyPhone     String?
+  gstAmount        Float?
+  netPayableAmount Float
+  subsidyAmount    Float?
+  systemCapacityKw Float
+  systemCost       Float
+  totalAmount      Float?
+  fromCompanyName  String?
+  BillingNumber    String?
+  CustomerNumber   String?
+  consumerNumber   String?
+  gstNumber        String?
+  customerType     String?
+  gstRate          Float?
+  numberOfFlats    Int?
+  onGrid           String?
+  phase            String?
+  subsidyType      String?
+  validityDays     Int?
+  rejectionReason  String?
+  doc1             String?
+  doc2             String?
+  doc3             String?
+  leadStatus       String?
+  remarks          String?
+  paymentProofs    PaymentProof[]
+  createdBy        User            @relation("QuotationCreator", fields: [createdById], references: [id])
+  items            QuotationItem[]
+}
+
+model QuotationItem {
+  id             String    @id @default(cuid())
+  quotationId    String
+  make1          String?
+  make2          String?
+  specification1 String?
+  specification2 String?
+  specification3 String?
+  specification7 String?
+  specification8 String?
+  specification9 String?
+  specification  String?
+  quotation      Quotation @relation(fields: [quotationId], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  type        String   @default("INFO")
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  quotationId String?
+  userId      String?
+}
+
+model PaymentProof {
+  id           String           @id @default(cuid())
+  type         PaymentProofType
+  imageUrl     String
+  uploadedAt   DateTime         @default(now())
+  uploadedById String
+  quotationId  String?
+  invoiceId    String?
+  invoice      Invoice?         @relation(fields: [invoiceId], references: [id])
+  quotation    Quotation?       @relation(fields: [quotationId], references: [id])
+  uploadedBy   User             @relation(fields: [uploadedById], references: [id])
+
+  @@index([uploadedById])
+  @@index([quotationId])
+  @@index([invoiceId])
+}
+
+model SolarHeaterCatalog {
+  id          Int    @id @default(autoincrement())
+  particular  String
+  basicPrice  Float
+  gst         Float
+  totalAmount Float
+}
+
+model SolarPanelCatalog {
+  id        Int     @id @default(autoincrement())
+  brand     String
+  rateRange String
+  wattRange String
+  type      String?
+}
+
+model SolarInverterCatalog {
+  id          Int    @id @default(autoincrement())
+  capacityKw  Float
+  phase       String
+  dealerPrice Float
+}
+
+model DecorativeLightCatalog {
+  id         Int    @id @default(autoincrement())
+  particular String
+  price      Float
+  gst        Float
+  totalPrice Float
+}
+
+model SolarCameraCatalog {
+  id          Int    @id @default(autoincrement())
+  particular  String
+  basicPrice  Float
+  gst         Float
+  totalAmount Float
+}
+model HSN {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hsnCode     String   @unique
+  description String
+
+  cgstRate    Float    @default(0)
+  sgstRate    Float    @default(0)
+  igstRate    Float    @default(0)
+
+  category    String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("HSN")
+}
+
+
+model Invoice {
+  id                 String         @id @default(cuid())
+  companyName        String
+  invoiceNumber      String         @unique
+  invoiceDate        DateTime       @default(now())
+  gstinNumber        String?
+  paymentStatus      String         @default("PENDING")
+  modeOfDispatch     String?
+  customerName       String
+  customerAddress    String
+  customerContact    String
+  customerGstinUin   String?
+  recipientName      String?
+  shippingAddress    String?
+  stateCode          String?
+  placeOfSupply      String?
+  netAmount          Float
+  cashDiscount       Float          @default(0)
+  cgst               Float          @default(0)
+  sgst               Float          @default(0)
+  roundOff           Float          @default(0)
+  advancedEnabled   Boolean @default(false)
+additionalAmount  Float   @default(0)
+  grandTotalPayable  Float
+  bankName           String?
+  accountNumber      String?
+  ifscCode           String?
+  termsAndConditions String?
+  amountInWords      String?
+  pdfFilePath        String?
+  createdById        String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  customerEmail      String?
+  emailSent          Boolean        @default(false)
+  emailSentAt        DateTime?
+  status             String         @default("DRAFT")
+  category           String?        @default("DOMESTIC")
+  currency           String?        @default("INR")
+  pdfSalesFilePath   String?
+  remarks            String?
+  salesPersonName    String?
+  salesPersonPhone   String?
+  trackingNumber     String?
+  transportThrough   String?
+  exchangeRate       Float?
+  swiftCode          String?
+  rejectionReason    String?
+  isProforma         Boolean        @default(false)
+  voucherId          String?
+  voucher            Voucher?       @relation(fields: [voucherId], references: [id])
+  createdBy          User           @relation("InvoiceCreator", fields: [createdById], references: [id])
+  items              InvoiceItem[]
+  paymentProofs      PaymentProof[]
+}
+
+model InvoiceItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  itemDescription String
+  hsnSac          String?
+  quantity        Float
+  unit            String?
+  rate            Float
+  discount        Float    @default(0)
+  amount          Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+}
+
+model SolarPumpDcCatalog {
+  id                   Int     @id @default(autoincrement())
+  solarPumpSet         String
+  totalDutyHead        String
+  mtrInFootBoreSize    String
+  workingCapacity      String
+  waterFlowOnGround    String
+  pipeline             String
+  sellingPriceGstExtra Float
+  pvArray              String
+  noOfPanelsRequired   String?
+  waterFlow            String
+}
+
+model SolarAcPumpControllerCatalog {
+  id                   Int     @id @default(autoincrement())
+  solarPumpController  String
+  singlePhaseAvailable Boolean
+  sellingPrice         Float
+  panelWattageRequired String
+  noOfPanelsRequired   String
+}
+
+model SolarStreetLightAllInOneCatalog {
+  id          Int    @id @default(autoincrement())
+  brand       String
+  description String
+  basePrice   Float
+  gst         Float
+  totalAmount Float
+}
+
+model Company {
+  id                     String               @id @default(cuid())
+  name                   String
+  legalName              String?
+  displayName            String
+  businessType           BusinessType         @default(PRIVATE_LIMITED)
+  industry               String?
+  gstin                  String?
+  pan                    String?
+  tan                    String?
+  cin                    String?
+  email                  String?
+  phone                  String?
+  website                String?
+  addressLine1           String?
+  addressLine2           String?
+  city                   String?
+  state                  String?
+  country                String               @default("India")
+  pincode                String?
+  baseCurrency           String               @default("INR")
+  financialYearStart     String               @default("04-01")
+  booksBeginningFrom     DateTime
+  enableGST              Boolean              @default(true)
+  enableTDS              Boolean              @default(false)
+  enableInventory        Boolean              @default(false)
+  ownerId                String
+  isActive               Boolean              @default(true)
+  isLocked               Boolean              @default(false)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  baseCurrencyFormalName String               @default("INR")
+  baseCurrencySymbol     String               @default("₹")
+  fax                    String?
+  financialYearFrom      DateTime?
+  mobile                 String?
+  telephone              String?
+  accountGroups          AccountGroup[]
+  auditLogs              AccountingAuditLog[]
+  AttendanceRecord       AttendanceRecord[]
+  owner                  User                 @relation("CompanyOwner", fields: [ownerId], references: [id])
+  users                  CompanyUser[]
+  EmployeeGroup          EmployeeGroup[]
+  financialYears         FinancialYear[]
+  Godown                 Godown[]
+  GodownStock            GodownStock[]
+  ledgers                Ledger[]
+  openingBalances        OpeningBalance[]
+  PayHead                PayHead[]
+  PayrollEmployee        PayrollEmployee[]
+  PayrollLock            PayrollLock[]
+  SalaryStructure        SalaryStructure[]
+  SalaryVoucher          SalaryVoucher[]
+  StatutoryConfig        StatutoryConfig?
+  StockCategory          StockCategory[]
+  StockGroup             StockGroup[]
+  StockItem              StockItem[]
+  Unit                   Unit[]
+  vouchers               Voucher[]
+  voucherEntries         VoucherEntry[]
+  voucherTypes           VoucherType[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+  @@index([isActive])
+}
+
+model CompanyUser {
+  id        String      @id @default(cuid())
+  companyId String
+  userId    String
+  role      CompanyRole @default(ACCOUNTANT)
+  isActive  Boolean     @default(true)
+  joinedAt  DateTime    @default(now())
+  company   Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([companyId, userId])
+  @@index([userId])
+}
+
+model FinancialYear {
+  id              String           @id @default(cuid())
+  companyId       String
+  yearName        String
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean          @default(true)
+  isLocked        Boolean          @default(false)
+  lockedAt        DateTime?
+  lockedBy        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  openingBalances OpeningBalance[]
+  vouchers        Voucher[]
+
+  @@unique([companyId, yearName])
+  @@index([companyId, isActive])
+}
+
+model AccountGroup {
+  id                 String         @id @default(cuid())
+  companyId          String
+  name               String
+  code               String?
+  parentId           String?
+  groupType          GroupType      @default(CUSTOM)
+  nature             AccountNature
+  affectsGrossProfit Boolean        @default(false)
+  level              Int            @default(0)
+  isSystem           Boolean        @default(false)
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  createdBy          String
+  updatedBy          String
+  company            Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parent             AccountGroup?  @relation("GroupHierarchy", fields: [parentId], references: [id])
+  children           AccountGroup[] @relation("GroupHierarchy")
+  ledgers            Ledger[]
+
+  @@unique([companyId, name])
+  @@index([companyId, groupType])
+  @@index([parentId])
+}
+
+model Ledger {
+  id                 String           @id @default(cuid())
+  companyId          String
+  groupId            String
+  name               String
+  code               String?
+  description        String?
+  openingBalance     Decimal          @default(0) @db.Decimal(15, 2)
+  openingBalanceType BalanceType      @default(DEBIT)
+  currentBalance     Decimal          @default(0) @db.Decimal(15, 2)
+  currentBalanceType BalanceType      @default(DEBIT)
+  contactPerson      String?
+  phone              String?
+  email              String?
+  address            String?
+  gstin              String?
+  pan                String?
+  bankName           String?
+  accountNumber      String?
+  ifscCode           String?
+  branch             String?
+  isBankAccount      Boolean          @default(false)
+  isCashAccount      Boolean          @default(false)
+  isPartyAccount     Boolean          @default(false)
+  isTaxAccount       Boolean          @default(false)
+  isSystem           Boolean          @default(false)
+  isActive           Boolean          @default(true)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  createdBy          String
+  updatedBy          String
+  tdsApplicable      Boolean          @default(false)
+  tdsLimit           Float?
+  tdsNatureOfPayment String?
+  tdsRate            Float?
+  company            Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  group              AccountGroup     @relation(fields: [groupId], references: [id])
+  openingBalances    OpeningBalance[]
+  PayHead            PayHead[]
+  Voucher            Voucher[]
+  voucherEntries     VoucherEntry[]
+
+  @@unique([companyId, name])
+  @@index([companyId, groupId])
+  @@index([companyId, isActive])
+}
+
+model OpeningBalance {
+  id              String        @id @default(cuid())
+  companyId       String
+  ledgerId        String
+  financialYearId String
+  amount          Decimal       @db.Decimal(15, 2)
+  balanceType     BalanceType
+  createdAt       DateTime      @default(now())
+  createdBy       String
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  financialYear   FinancialYear @relation(fields: [financialYearId], references: [id])
+  ledger          Ledger        @relation(fields: [ledgerId], references: [id])
+
+  @@unique([ledgerId, financialYearId])
+  @@index([companyId, financialYearId])
+}
+
+model Task {
+  id          String           @id @default(cuid())
+  name        String
+  dueDate     DateTime
+  priority    String
+  target      Int
+  description String?
+  status      String           @default("TO_DO")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  createdById String
+  createdBy   User             @relation("TaskCreator", fields: [createdById], references: [id])
+  assignments TaskAssignment[]
+
+  @@index([createdById])
+  @@index([status])
+}
+
+model TaskAssignment {
+  id              String   @id @default(cuid())
+  taskId          String
+  userId          String
+  completedTarget Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  task            Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user            User     @relation("TaskAssignee", fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([taskId])
+  @@index([userId])
+}
+
+model VoucherType {
+  id             String          @id @default(cuid())
+  companyId      String
+  name           String
+  code           String
+  category       VoucherCategory
+  prefix         String?
+  suffix         String?
+  startingNumber Int             @default(1)
+  currentNumber  Int             @default(1)
+  isSystem       Boolean         @default(false)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  vouchers       Voucher[]
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
+}
+
+model Voucher {
+  id                String               @id @default(cuid())
+  companyId         String
+  voucherTypeId     String
+  financialYearId   String
+  voucherNumber     String
+  voucherDate       DateTime
+  referenceNumber   String?
+  referenceDate     DateTime?
+  narration         String?
+  status            VoucherStatus        @default(DRAFT)
+  postedAt          DateTime?
+  postedBy          String?
+  isReversed        Boolean              @default(false)
+  reversedAt        DateTime?
+  reversedBy        String?
+  reversalVoucherId String?              @unique
+  originalVoucherId String?
+  totalDebit        Decimal              @default(0) @db.Decimal(15, 2)
+  totalCredit       Decimal              @default(0) @db.Decimal(15, 2)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  createdBy         String
+  updatedBy         String
+  partyLedgerId     String?
+  invoiceNumber     String?
+  auditLogs         AccountingAuditLog[]
+  SalaryVoucher     SalaryVoucher?
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  financialYear     FinancialYear        @relation(fields: [financialYearId], references: [id])
+  Ledger            Ledger?              @relation(fields: [partyLedgerId], references: [id])
+  reversalVoucher   Voucher?             @relation("VoucherReversal", fields: [reversalVoucherId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  originalVoucher   Voucher?             @relation("VoucherReversal")
+  voucherType       VoucherType          @relation(fields: [voucherTypeId], references: [id])
+  entries           VoucherEntry[]
+  VoucherItem       VoucherItem[]
+  invoices          Invoice[]
+
+  @@unique([companyId, voucherNumber, financialYearId])
+  @@index([companyId, voucherDate])
+  @@index([companyId, status])
+  @@index([financialYearId])
+  @@index([partyLedgerId])
+}
+
+model VoucherEntry {
+  id               String    @id @default(cuid())
+  companyId        String
+  voucherId        String
+  ledgerId         String
+  entryType        EntryType
+  amount           Decimal   @db.Decimal(15, 2)
+  description      String?
+  createdAt        DateTime  @default(now())
+  bankDate         DateTime?
+  instrumentDate   DateTime?
+  instrumentNumber String?
+  instrumentType   String?
+  isReconciled     Boolean   @default(false)
+  reconciledAt     DateTime?
+  reconciledBy     String?
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ledger           Ledger    @relation(fields: [ledgerId], references: [id])
+  voucher          Voucher   @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+  @@index([ledgerId])
+  @@index([companyId, ledgerId])
+  @@index([isReconciled])
+}
+
+model AccountingAuditLog {
+  id          String      @id @default(cuid())
+  companyId   String
+  entityType  String
+  entityId    String
+  action      AuditAction
+  changes     Json?
+  description String?
+  performedBy String
+  performedAt DateTime    @default(now())
+  ipAddress   String?
+  voucherId   String?
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  voucher     Voucher?    @relation(fields: [voucherId], references: [id])
+
+  @@index([companyId, entityType, entityId])
+  @@index([companyId, performedAt])
+  @@index([voucherId])
+}
+
+model ProductionTask {
+  id                String    @id @default(cuid())
+  description       String
+  targetQuantity    Int
+  completedQuantity Int       @default(0)
+  startDate         DateTime  @default(now())
+  deadline          DateTime?
+  status            String    @default("Pending")
+  priority          String
+  category          String?
+  assigneeId        String?
+  assigneeName      String?
+  qcPassed          Boolean   @default(false)
+  qcRemarks         String?
+  dispatchDate      DateTime?
+  dispatchNotes     String?
+  dispatchQty       Int?
+  quotationId       String?
+  customerName      String?
+  customerEmail     String?
+  orderDetails      String?
+  systemCapacity    Float?
+  deliveryAddress   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  invoiceId         String?
+  workOrderUrl      String?
+
+  @@index([status])
+  @@index([assigneeId])
+  @@index([invoiceId])
+}
+
+model VoucherItem {
+  id        String  @id @default(cuid())
+  voucherId String
+  itemName  String
+  quantity  Decimal @db.Decimal(15, 2)
+  rate      Decimal @db.Decimal(15, 2)
+  amount    Decimal @db.Decimal(15, 2)
+  Voucher   Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@index([voucherId])
+}
+
+model AttendanceRecord {
+  id              String          @id @default(cuid())
+  companyId       String
+  employeeId      String
+  date            DateTime
+  attendanceType  AttendanceType  @default(PRESENT)
+  remarks         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  createdBy       String
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  payrollEmployee PayrollEmployee @relation(fields: [employeeId], references: [id])
+
+  @@unique([companyId, employeeId, date])
+  @@index([companyId, date])
+  @@index([companyId, employeeId, date])
+}
+
+model EmployeeGroup {
+  id                  String            @id @default(cuid())
+  companyId           String
+  name                String
+  alias               String?
+  parentId            String?
+  defineSalaryDetails Boolean           @default(false)
+  isActive            Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  company             Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parent              EmployeeGroup?    @relation("EmployeeGroupToEmployeeGroup", fields: [parentId], references: [id])
+  children            EmployeeGroup[]   @relation("EmployeeGroupToEmployeeGroup")
+  employees           PayrollEmployee[]
+  locks               PayrollLock[]
+  salaryStructures    SalaryStructure[]
+
+  @@unique([companyId, name])
+  @@index([companyId, parentId])
+}
+
+model PTSlab {
+  id                 String   @id @default(cuid())
+  state              String
+  salaryFrom         Decimal  @db.Decimal(15, 2)
+  salaryTo           Decimal  @db.Decimal(15, 2)
+  monthlyAmount      Decimal  @db.Decimal(15, 2)
+  isFebruaryOverride Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([state, salaryFrom, isFebruaryOverride])
+  @@index([state])
+}
+
+model PayHead {
+  id                   String                @id @default(cuid())
+  companyId            String
+  name                 String
+  alias                String?
+  payHeadType          PayHeadType
+  incomeType           String                @default("Fixed")
+  ledgerGroupName      String?
+  ledgerId             String?
+  affectNetSalary      Boolean               @default(true)
+  calcType             CalcType              @default(AS_USER_DEFINED_VALUE)
+  computeOn            ComputeOn             @default(NOT_APPLICABLE)
+  computePercentage    Decimal?              @db.Decimal(8, 4)
+  computePayHeadIds    String[]
+  isSlabBased          Boolean               @default(false)
+  payslipDisplayName   String?
+  useForGratuity       Boolean               @default(false)
+  sortOrder            Int                   @default(0)
+  isStatutory          Boolean               @default(false)
+  statutoryType        String?
+  isActive             Boolean               @default(true)
+  isSystem             Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ledger               Ledger?               @relation(fields: [ledgerId], references: [id])
+  salaryStructureItems SalaryStructureItem[]
+  salaryVoucherItems   SalaryVoucherItem[]
+
+  @@unique([companyId, name])
+  @@index([companyId, isStatutory])
+  @@index([companyId, payHeadType])
+}
+
+model PayrollEmployee {
+  id                String             @id @default(cuid())
+  companyId         String
+  name              String
+  alias             String?
+  employeeNumber    String?
+  dateOfJoining     DateTime
+  dateOfLeaving     DateTime?
+  designation       String?
+  department        String?
+  function          String?
+  location          String?
+  employeeGroupId   String?
+  gender            Gender?
+  dateOfBirth       DateTime?
+  bloodGroup        String?
+  fatherMotherName  String?
+  spouseName        String?
+  address           String?
+  phone             String?
+  email             String?
+  bankName          String?
+  bankAccountNumber String?
+  ifscCode          String?
+  bankBranch        String?
+  pan               String?
+  aadhaar           String?
+  uan               String?
+  pfAccountNumber   String?
+  pran              String?
+  esiNumber         String?
+  pfApplicable      Boolean            @default(false)
+  esiApplicable     Boolean            @default(false)
+  ptApplicable      Boolean            @default(false)
+  state             String?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  createdBy         String
+  pfJoinDate        DateTime?
+  attendanceRecords AttendanceRecord[]
+  company           Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employeeGroup     EmployeeGroup?     @relation(fields: [employeeGroupId], references: [id])
+  salaryStructures  SalaryStructure[]
+  salaryVouchers    SalaryVoucher[]
+
+  @@unique([companyId, employeeNumber])
+  @@index([companyId, employeeGroupId])
+  @@index([companyId, isActive])
+  @@index([companyId, state])
+}
+
+model PayrollLock {
+  id              String         @id @default(cuid())
+  companyId       String
+  month           Int
+  year            Int
+  lockedAt        DateTime       @default(now())
+  lockedBy        String
+  employeeGroupId String?
+  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employeeGroup   EmployeeGroup? @relation(fields: [employeeGroupId], references: [id])
+
+  @@unique([companyId, month, year, employeeGroupId])
+  @@index([companyId, month, year])
+}
+
+model SalaryStructure {
+  id              String                @id @default(cuid())
+  companyId       String
+  employeeId      String?
+  employeeGroupId String?
+  effectiveFrom   DateTime
+  effectiveTo     DateTime?
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdBy       String
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employeeGroup   EmployeeGroup?        @relation(fields: [employeeGroupId], references: [id])
+  employee        PayrollEmployee?      @relation(fields: [employeeId], references: [id])
+  items           SalaryStructureItem[]
+
+  @@index([companyId, employeeGroupId])
+  @@index([companyId, employeeId])
+  @@index([effectiveFrom])
+}
+
+model SalaryStructureItem {
+  id                String          @id @default(cuid())
+  salaryStructureId String
+  payHeadId         String
+  amount            Decimal?        @db.Decimal(15, 2)
+  percentage        Decimal?        @db.Decimal(8, 4)
+  formula           String?
+  sortOrder         Int             @default(0)
+  payHead           PayHead         @relation(fields: [payHeadId], references: [id])
+  salaryStructure   SalaryStructure @relation(fields: [salaryStructureId], references: [id], onDelete: Cascade)
+
+  @@unique([salaryStructureId, payHeadId])
+  @@index([payHeadId])
+}
+
+model SalaryVoucher {
+  id                    String              @id @default(cuid())
+  companyId             String
+  employeeId            String
+  month                 Int
+  year                  Int
+  periodStart           DateTime
+  periodEnd             DateTime
+  totalWorkingDays      Decimal             @db.Decimal(5, 1)
+  daysPresent           Decimal             @db.Decimal(5, 1)
+  daysAbsent            Decimal             @db.Decimal(5, 1)
+  leaveWithPay          Decimal             @default(0) @db.Decimal(5, 1)
+  grossEarnings         Decimal             @default(0) @db.Decimal(15, 2)
+  totalDeductions       Decimal             @default(0) @db.Decimal(15, 2)
+  netSalary             Decimal             @default(0) @db.Decimal(15, 2)
+  employerContributions Decimal             @default(0) @db.Decimal(15, 2)
+  status                SalaryVoucherStatus @default(DRAFT)
+  processedAt           DateTime?
+  processedBy           String?
+  approvedAt            DateTime?
+  approvedBy            String?
+  voucherId             String?             @unique
+  narration             String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  company               Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee              PayrollEmployee     @relation(fields: [employeeId], references: [id])
+  voucher               Voucher?            @relation(fields: [voucherId], references: [id])
+  items                 SalaryVoucherItem[]
+
+  @@unique([companyId, employeeId, month, year])
+  @@index([companyId, month, year])
+  @@index([companyId, status])
+  @@index([employeeId])
+}
+
+model SalaryVoucherItem {
+  id                 String        @id @default(cuid())
+  salaryVoucherId    String
+  payHeadId          String
+  amount             Decimal       @db.Decimal(15, 2)
+  computedPercentage Decimal?      @db.Decimal(8, 4)
+  computedOnAmount   Decimal?      @db.Decimal(15, 2)
+  payHeadType        PayHeadType
+  affectsNetSalary   Boolean       @default(true)
+  payHeadName        String
+  payHead            PayHead       @relation(fields: [payHeadId], references: [id])
+  salaryVoucher      SalaryVoucher @relation(fields: [salaryVoucherId], references: [id], onDelete: Cascade)
+
+  @@unique([salaryVoucherId, payHeadId])
+  @@index([payHeadId])
+}
+
+model StatutoryConfig {
+  id                    String   @id @default(cuid())
+  companyId             String   @unique
+  pfEnabled             Boolean  @default(false)
+  pfRegistrationNumber  String?
+  pfEstablishmentId     String?
+  pfWageCeiling         Decimal? @db.Decimal(15, 2)
+  esiEnabled            Boolean  @default(false)
+  esiRegistrationNumber String?
+  esiWageCeiling        Decimal? @db.Decimal(15, 2)
+  ptEnabled             Boolean  @default(false)
+  ptRegistrationNumber  String?
+  ptState               String?
+  payrollEnabled        Boolean  @default(true)
+  attendanceRequired    Boolean  @default(true)
+  defaultWorkingDays    Int      @default(26)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  updatedBy             String?
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model StockCategory {
+  id         String          @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId  String
+  name       String
+  alias      String?
+  underId    String?
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @default(now())
+  createdBy  String?
+  updatedBy  String?
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parent     StockCategory?  @relation("StockCategoryToStockCategory", fields: [underId], references: [id])
+  children   StockCategory[] @relation("StockCategoryToStockCategory")
+  stockItems StockItem[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@index([underId])
+}
+
+model StockGroup {
+  id                  String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId           String
+  name                String
+  alias               String?
+  underId             String?
+  shouldAddQuantities Boolean      @default(false)
+  gstApplicable       String       @default("Applicable")
+  hsnSac              String?
+  hsnDescription      String?
+  taxabilityType      String?
+  gstRate             Float        @default(0)
+  isActive            Boolean      @default(true)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @default(now())
+  createdBy           String?
+  updatedBy           String?
+  Company             Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  StockGroup          StockGroup?  @relation("StockGroupToStockGroup", fields: [underId], references: [id])
+  other_StockGroup    StockGroup[] @relation("StockGroupToStockGroup")
+  StockItem           StockItem[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@index([underId])
+}
+
+model StockItem {
+  id             String         @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId      String
+  name           String
+  alias          String?
+  groupId        String?
+  categoryId     String?
+  unitId         String?
+  gstApplicable  String         @default("Applicable")
+  hsnSource      String         @default("As per Company/Stock Group")
+  hsnSac         String?
+  hsnDescription String?
+  gstRateSource  String         @default("As per Company/Stock Group")
+  taxabilityType String?
+  gstRate        Float          @default(0)
+  typeOfSupply   String         @default("Goods")
+  rateOfDuty     Float          @default(0)
+  openingQty     Float          @default(0)
+  openingRate    Float          @default(0)
+  openingValue   Float          @default(0)
+  closingQty     Float          @default(0)
+  closingValue   Float          @default(0)
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now())
+  createdBy      String?
+  updatedBy      String?
+  GodownStock    GodownStock[]
+  StockCategory  StockCategory? @relation(fields: [categoryId], references: [id])
+  Company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  StockGroup     StockGroup?    @relation(fields: [groupId], references: [id])
+  Unit           Unit?          @relation(fields: [unitId], references: [id])
+
+  @@unique([companyId, name])
+  @@index([categoryId])
+  @@index([companyId])
+  @@index([groupId])
+  @@index([unitId])
+}
+
+model Unit {
+  id            String      @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId     String
+  type          String      @default("Simple")
+  symbol        String
+  formalName    String
+  uqc           String?
+  decimalPlaces Int         @default(0)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now())
+  createdBy     String?
+  updatedBy        String?
+  firstUnitId      String?
+  secondUnitId     String?
+  conversionFactor Float?
+  StockItem        StockItem[]
+  Company          Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  firstUnit        Unit?       @relation("CompoundFirst", fields: [firstUnitId], references: [id])
+  secondUnit       Unit?       @relation("CompoundSecond", fields: [secondUnitId], references: [id])
+  compoundFirstFor Unit[]      @relation("CompoundFirst")
+  compoundSecondFor Unit[]     @relation("CompoundSecond")
+
+  @@unique([companyId, symbol])
+  @@index([companyId])
+}
+
+model WorkOrder {
+  id               String    @id @default(cuid())
+  jobId            String    @unique
+  date             DateTime  @default(now())
+  customerName     String?
+  customerAddress  String?
+  customerContact  String?
+  customerGst      String?
+  customerState    String?
+  shipToAddress    String?
+  deliveryDate     DateTime?
+  finishedGoodName String?
+  finishedGoodQty  Int?
+  items            Json
+  additionalCost   Float     @default(0)
+  status           String    @default("DRAFT")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  createdById      String
+  createdBy        User      @relation("WorkOrderCreator", fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([jobId])
+}
+
+model Godown {
+  id           String        @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId    String
+  name         String
+  alias        String?
+  underId      String?
+  address      String?
+  contactName  String?
+  contactPhone String?
+  isDefault    Boolean       @default(false)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now())
+  createdBy    String?
+  updatedBy    String?
+  Company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  Godown       Godown?       @relation("GodownToGodown", fields: [underId], references: [id])
+  other_Godown Godown[]      @relation("GodownToGodown")
+  GodownStock  GodownStock[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@index([underId])
+}
+
+model GodownStock {
+  id          String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  companyId   String
+  stockItemId String
+  godownId    String
+  quantity    Float     @default(0)
+  rate        Float     @default(0)
+  value       Float     @default(0)
+  updatedAt   DateTime  @default(now())
+  Company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  Godown      Godown    @relation(fields: [godownId], references: [id], onDelete: Cascade)
+  StockItem   StockItem @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+
+  @@unique([stockItemId, godownId])
+  @@index([companyId])
+  @@index([godownId])
+  @@index([stockItemId])
+}
+
+enum PaymentProofType {
+  ADVANCE
+  FULL
+  LIGHT_BILL
+}
+
+enum BusinessType {
+  SOLE_PROPRIETORSHIP
+  PARTNERSHIP
+  LLP
+  PRIVATE_LIMITED
+  PUBLIC_LIMITED
+  OPC
+  NGO
+  TRUST
+  SOCIETY
+  HUF
+  OTHER
+}
+
+enum CompanyRole {
+  OWNER
+  ADMIN
+  ACCOUNTANT
+  AUDITOR
+  DATA_ENTRY
+  VIEWER
+}
+
+enum GroupType {
+  PRIMARY
+  SECONDARY
+  CUSTOM
+}
+
+enum AccountNature {
+  ASSET
+  LIABILITY
+  INCOME
+  EXPENSE
+  EQUITY
+}
+
+enum BalanceType {
+  DEBIT
+  CREDIT
+}
+
+enum VoucherCategory {
+  PAYMENT
+  RECEIPT
+  CONTRA
+  JOURNAL
+  SALES
+  PURCHASE
+  DEBIT_NOTE
+  CREDIT_NOTE
+  PAYROLL
+}
+
+enum VoucherStatus {
+  DRAFT
+  POSTED
+  REVERSED
+}
+
+enum EntryType {
+  DEBIT
+  CREDIT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  POST
+  REVERSE
+  LOCK
+  UNLOCK
+}
+
+enum AttendanceType {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LEAVE_WITH_PAY
+  LEAVE_WITHOUT_PAY
+  HOLIDAY
+  WEEKLY_OFF
+}
+
+enum CalcType {
+  AS_USER_DEFINED_VALUE
+  AS_COMPUTED_VALUE
+  FLAT_RATE
+  ON_ATTENDANCE
+}
+
+enum ComputeOn {
+  CURRENT_EARNINGS_TOTAL
+  CURRENT_DEDUCTIONS_TOTAL
+  SPECIFIED_PAY_HEADS
+  NOT_APPLICABLE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum PayHeadType {
+  EARNINGS_FOR_EMPLOYEES
+  DEDUCTIONS_FROM_EMPLOYEES
+  EMPLOYERS_STATUTORY_CONTRIBUTIONS
+  EMPLOYERS_OTHER_CHARGES
+  BONUS
+  REIMBURSEMENT
+}
+
+enum SalaryVoucherStatus {
+  DRAFT
+  PROCESSED
+  APPROVED
+  CANCELLED
+}

@@ -1,0 +1,82 @@
+{
+  "name": "solarica-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand",
+    "dev:both": "concurrently \"npm run dev:api\" \"npm run dev:worker\"",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
+    "build": "tsc",
+    "start:api": "node dist/server.js",
+    "start:worker": "node dist/worker.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dw-Innovationpvt/solarica-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dw-Innovationpvt/solarica-backend/issues"
+  },
+  "homepage": "https://github.com/Dw-Innovationpvt/solarica-backend#readme",
+  "description": "",
+  "dependencies": {
+    "@bull-board/api": "^6.16.2",
+    "@bull-board/express": "^6.16.2",
+    "@prisma/client": "^6.2.1",
+    "@supabase/supabase-js": "^2.87.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.66.4",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
+    "date-fns": "^4.1.0",
+    "decimal.js": "^10.6.0",
+    "docxtemplater": "^3.67.6",
+    "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "fs-extra": "^11.3.3",
+    "ioredis": "^5.9.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^8.0.4",
+    "pdfkit": "^0.17.2",
+    "pizzip": "^3.2.0",
+    "prisma": "^6.2.1",
+    "puppeteer": "^24.34.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^25.0.1",
+    "@types/nodemailer": "^7.0.4",
+    "@types/supertest": "^6.0.3",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}
