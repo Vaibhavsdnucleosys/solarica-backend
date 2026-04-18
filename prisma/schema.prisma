@@ -201,22 +201,18 @@ model SolarCameraCatalog {
   gst         Float
   totalAmount Float
 }
-model HSN {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  hsnCode     String   @unique
-  description String
 
+model HSN {
+  id          Int      @id @default(autoincrement())
+  hsnCode     String   @unique
+  description String?
   cgstRate    Float    @default(0)
   sgstRate    Float    @default(0)
   igstRate    Float    @default(0)
-
-  category    String?
+  category    String
   isActive    Boolean  @default(true)
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@map("HSN")
 }
 
 

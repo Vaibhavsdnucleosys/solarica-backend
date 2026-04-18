@@ -6,11 +6,15 @@ import { requestLogger } from "./middleware/logger.middleware";
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { serverAdapter } from "./config/bullboard.config";
-
+import hsnRoutes from "./api/router/hsn.router";
 const app = express();
 
 // CORS configuration
-app.use(cors({ origin: true, credentials: true }));
+// app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: "*", // allow all for now (we'll secure later)
+  credentials: true
+}));
 app.use(express.json());
 app.use(requestLogger);
 
@@ -46,9 +50,21 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+
+
+
+
+app.use(express.json());
+
+app.use("/api/v1/hsn-master", hsnRoutes);
+
+
+
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
-
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
 export default app;
 

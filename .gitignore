@@ -97,5 +97,11 @@ temp/
 ehthumbs.db
 Thumbs.db
 
+
+
 # Prisma
 # Keep schema.prisma, ignore generated files and migrations
+node_modules/
+uploads/
+.env
+dist/

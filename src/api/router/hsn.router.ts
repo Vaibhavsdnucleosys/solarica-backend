@@ -8,6 +8,19 @@ const router = Router();
 router.get('/', auth, HsnController.list);
 router.post('/', auth, HsnController.create);
 router.put('/:id', auth, HsnController.update);
-router.post('/import', auth, upload.single('file'), HsnController.importHsn);
+// router.post('/import', auth, upload.single('file'), HsnController.importHsn);
+
+
+
+// ✅ FILE UPLOAD ROUTE
+router.post(
+  "/import",
+  auth,
+  upload.single("file"),
+  HsnController.importHsn
+);
+
+
 
 export default router;
+;
