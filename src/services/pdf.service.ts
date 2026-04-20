@@ -24,7 +24,7 @@ export const generateInvoicePDF = async (invoiceData: any, templateType: 'STANDA
 
 
 const browser = await puppeteer.launch({
-  executablePath: "/usr/bin/chromium-browser",
+  executablePath: "/home/ubuntu/.cache/puppeteer/chrome/linux-143.0.7499.169/chrome-linux64/chrome",
   headless: true,
   args: [
     "--no-sandbox",
