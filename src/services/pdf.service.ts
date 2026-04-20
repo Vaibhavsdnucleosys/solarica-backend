@@ -21,7 +21,9 @@ export const generateInvoicePDF = async (invoiceData: any, templateType: 'STANDA
     //     args: ['--no-sandbox', '--disable-setuid-sandbox']
     // });
 
-    const browser = await puppeteer.launch({
+
+
+const browser = await puppeteer.launch({
   executablePath: "/usr/bin/chromium-browser",
   headless: true,
   args: [
@@ -31,6 +33,10 @@ export const generateInvoicePDF = async (invoiceData: any, templateType: 'STANDA
     "--disable-gpu"
   ]
 });
+
+
+
+
     try {
         const page = await browser.newPage();
         
