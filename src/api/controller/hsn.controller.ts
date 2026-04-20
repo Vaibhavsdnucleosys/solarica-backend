@@ -67,7 +67,7 @@ export const create = async (req: Request, res: Response) => {
 export const update = async (req: Request, res: Response) => {
     try {
         const data = await prisma.hSN.update({
-            where: { id: req.params.id },
+        where: { id: Number(req.params.id) },
             data: {
                 description: req.body.description,
                 cgstRate: Number(req.body.cgstRate),
