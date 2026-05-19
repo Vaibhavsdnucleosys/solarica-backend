@@ -11,22 +11,28 @@ export const createLeadModel = async (
   createdById: string,
   estimatedValue?: number,
   notes?: string,
-   customerType?: string
+  customerType?: string,
+  assignedToId?: string,
+  assignedToName?: string
 ) => {
-  return await prisma.lead.create({
-    data: {
-      name,
-      company,
-      email,
-      phone,
-      source,
-      status: "New",
-      estimatedValue,
-      notes,
-      createdById,
-       customerType,
-    },
-  });
+return await prisma.lead.create({
+  data: {
+    name,
+    company,
+    email,
+    phone,
+    source,
+    status: "New",
+    estimatedValue,
+    notes,
+    createdById,
+    customerType,
+
+    assignedToId,
+    assignedToName
+  },
+});
+
 };
 
 // ✅ GET ALL (Admin sees all, others see own)
@@ -37,8 +43,10 @@ export const getLeadsModel = async (
 ) => {
   const { status, source, search } = filters;
 
-  const where: Prisma.LeadWhereInput =
-    userRole === "admin" ? {} : { createdById: userId };
+  // const where: Prisma.LeadWhereInput =
+  //   userRole === "admin" ? {} : { createdById: userId };
+
+  const where: Prisma.LeadWhereInput = {};
 
   // const where: Prisma.LeadWhereInput =
   // userRole === "admin"
@@ -85,10 +93,12 @@ export const getLeadByIdModel = async (
   userId: string,
   userRole: string
 ) => {
-  const where: Prisma.LeadWhereInput =
-    userRole === "admin"
-      ? { id }
-      : { id, createdById: userId };
+  // const where: Prisma.LeadWhereInput =
+  //   userRole === "admin"
+  //     ? { id }
+  //     : { id, createdById: userId };
+
+  const where: Prisma.LeadWhereInput = { id };
 
   return await prisma.lead.findFirst({
     where,
@@ -118,10 +128,11 @@ export const updateLeadModel = async (
   userRole: string,
   data: Prisma.LeadUpdateInput
 ) => {
-  const where =
-    userRole === "admin"
-      ? { id }
-      : { id, createdById: userId };
+  // const where =
+  //   userRole === "admin"
+  //     ? { id }
+  //     : { id, createdById: userId };
+  const where = { id };
 
   return await prisma.lead.updateMany({
     where,
@@ -139,10 +150,12 @@ export const deleteLeadModel = async (
   userId: string,
   userRole: string
 ) => {
-  const where =
-    userRole === "admin"
-      ? { id }
-      : { id, createdById: userId };
+  // const where =
+  //   userRole === "admin"
+  //     ? { id }
+  //     : { id, createdById: userId };
+
+  const where = { id };
 
   return await prisma.lead.deleteMany({
     where,
@@ -154,8 +167,10 @@ export const getLeadStatsModel = async (
   userId: string,
   userRole: string
 ) => {
-  const where =
-    userRole === "admin" ? {} : { createdById: userId };
+  // const where =
+  //   userRole === "admin" ? {} : { createdById: userId };
+
+  const where = {};
 
   const stats = await prisma.lead.groupBy({
     by: ["status"],
@@ -212,8 +227,10 @@ export const searchLeadNamesModel = async (
   userId: string,
   userRole: string
 ) => {
-  const where: Prisma.LeadWhereInput =
-    userRole === "admin" ? {} : { createdById: userId };
+  // const where: Prisma.LeadWhereInput =
+  //   userRole === "admin" ? {} : { createdById: userId };
+
+  const where: Prisma.LeadWhereInput = {};
 
   return await prisma.lead.findMany({
     where: {

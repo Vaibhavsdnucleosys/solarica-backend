@@ -3,11 +3,15 @@ import { buildInvoiceHTML, buildSalesInvoiceHTML } from '../templates/html/invoi
 import { buildWorkOrderHTML } from '../templates/html/workorder.template';
 import { logger } from '../config/logger.config';
 import { amountToWords } from '../utils/accounting/helpers';
+import { buildTaxInvoiceHTML } from '../templates/html/taxInvoice.template';
 
 /**
  * Service to generate Invoice PDFs using Puppeteer
  */
-export const generateInvoicePDF = async (invoiceData: any, templateType: 'STANDARD' | 'SALES' = 'STANDARD'): Promise<Buffer> => {
+export const generateInvoicePDF = async (
+  invoiceData: any,
+  templateType: 'STANDARD' | 'SALES' | 'TAX' = 'STANDARD'
+): Promise<Buffer> =>{
     logger.info(`[PDF Service] Starting ${templateType} PDF generation for invoice: ${invoiceData.invoiceNumber}`);
 
     // [FIX] Fallback for missing amountInWords
@@ -23,15 +27,26 @@ export const generateInvoicePDF = async (invoiceData: any, templateType: 'STANDA
 
 
 
+// const browser = await puppeteer.launch({
+//   executablePath: "/home/ubuntu/.cache/puppeteer/chrome/linux-143.0.7499.169/chrome-linux64/chrome",
+//   headless: true,
+//   args: [
+//     "--no-sandbox",
+//     "--disable-setuid-sandbox",
+//     "--disable-dev-shm-usage",
+//     "--disable-gpu"
+//   ]
+// });
+
 const browser = await puppeteer.launch({
-  executablePath: "/home/ubuntu/.cache/puppeteer/chrome/linux-143.0.7499.169/chrome-linux64/chrome",
   headless: true,
+  executablePath: process.env.CHROME_PATH || undefined,
   args: [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
-    "--disable-gpu"
-  ]
+    "--disable-gpu",
+  ],
 });
 
 
@@ -40,8 +55,27 @@ const browser = await puppeteer.launch({
     try {
         const page = await browser.newPage();
         
-        const html = templateType === 'SALES' ? buildSalesInvoiceHTML(invoiceData) : buildInvoiceHTML(invoiceData);
+        // const html = templateType === 'SALES' ? buildSalesInvoiceHTML(invoiceData) : buildInvoiceHTML(invoiceData);
+const html =
+  templateType === 'SALES'
 
+    ? buildSalesInvoiceHTML({
+        ...invoiceData,
+        documentTitle: 'DELIVERY CHALLAN'
+      })
+
+   :templateType === 'TAX'
+
+? buildTaxInvoiceHTML({
+    ...invoiceData,
+    documentTitle: 'TAX INVOICE',
+    isTaxInvoice: true
+  })
+
+    : buildInvoiceHTML({
+        ...invoiceData,
+        documentTitle: 'ESTIMATE'
+      });
         await page.setContent(html, { waitUntil: 'networkidle0' });
 
         const pdfBuffer = await page.pdf({

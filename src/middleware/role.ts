@@ -7,7 +7,7 @@ export const allow = (...roles: string[]) => {
     const allowedRoles = roles.map(r => r.toLowerCase().trim());
 
     console.log(`[ACL Check] User: ${req.user?.email}, Role: ${userRole}, Required: ${allowedRoles.join(', ')}`);
-
+console.log("REQ.USER 👉", req.user);
     if (userRole === 'admin') return next(); // Admin always allowed
 
     if (!userRole || !allowedRoles.includes(userRole)) {

@@ -15,29 +15,56 @@
   export const createLead = async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.id;
+      // const {
+      //   name,
+      //   company,
+      //   email,
+      //   phone,
+      //   source,
+      //   estimatedValue,
+      //   notes,
+      //   customerType
+      // } = req.body;
+
       const {
-        name,
-        company,
-        email,
-        phone,
-        source,
-        estimatedValue,
-        notes,
-        customerType
-      } = req.body;
+  name,
+  company,
+  email,
+  phone,
+  source,
+  estimatedValue,
+  notes,
+  customerType,
+  assignedToId,
+  assignedToName
+} = req.body;
 
-      const lead = await createLeadModel(
-        name,
-        company,
-        email,
-        phone,
-        source,
-        userId,
-        estimatedValue,
-        notes,
-          customerType
-      );
+      // const lead = await createLeadModel(
+      //   name,
+      //   company,
+      //   email,
+      //   phone,
+      //   source,
+      //   userId,
+      //   estimatedValue,
+      //   notes,
+      //     customerType
+      // );
 
+const lead = await createLeadModel(
+  name,
+  company,
+  email,
+  phone,
+  source,
+  userId,
+  estimatedValue,
+  notes,
+  customerType,
+  assignedToId,
+  assignedToName
+);
+      
       res.status(201).json({
         message: "Lead created successfully",
         data: lead,

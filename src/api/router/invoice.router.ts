@@ -15,7 +15,9 @@ import {
   getNextInvoiceNumber,
   getNextExportNumber,
   respondToInvoice,
-  convertToProforma
+  convertToProforma,
+  convertToTaxInvoice,
+  downloadTaxInvoice
 } from "../controller/invoice.controller";
 
 import { createProductionTask } from "../controller/production-task.controller";
@@ -45,6 +47,10 @@ invoiceRouter.get("/:id/proofs", auth, getInvoiceProofs);
 invoiceRouter.get("/:id/download-invoice", downloadInvoice);
 invoiceRouter.get("/:id/delivery-preview", getDeliveryPreview);
 invoiceRouter.get("/:id/download-sales-invoice", downloadSalesInvoice);
+invoiceRouter.get(
+  "/:id/download-tax-invoice",
+  downloadTaxInvoice
+);
 invoiceRouter.get("/respond/:id", respondToInvoice);
 
 
@@ -62,6 +68,16 @@ invoiceRouter.patch("/:id/proforma", auth, allow("admin", "sales", "accounting",
 invoiceRouter.post("/:id/send-email", auth, allow("admin", "sales", "accounting", "operation"), sendInvoiceEmail);
 invoiceRouter.get("/:id/delivery-preview", auth, allow("admin", "sales", "accounting", "operation"), generateInvoiceWithDeliveryDate);
 invoiceRouter.delete("/:id", auth, allow("admin"), deleteInvoice);
-
+invoiceRouter.patch(
+  "/:id/tax-invoice",
+  auth,
+  allow(
+    "admin",
+    "sales",
+    "accounting",
+    "operation"
+  ),
+  convertToTaxInvoice
+);
 export default invoiceRouter;
 

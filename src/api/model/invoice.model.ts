@@ -2,7 +2,8 @@ import prisma from "../../config/prisma";
 import { generateInvoicePDF } from "../../services/pdf.service";
 import { uploadPDFToSupabase, generateSignedURL, deletePDFFromSupabase } from "../../config/supabase";
 import { sendInvoiceEmail } from "../../services/email.service";
-
+import { queueInvoicePDFJob } from "../../queues/invoice.queue";
+import { normalizeInvoiceData } from "../../utils/normalizeInvoiceData";
 // Create new invoice
 export const createInvoiceModel = async (
   createdById: string, // Required first
@@ -58,9 +59,13 @@ export const createInvoiceModel = async (
   salesPersonName?: string,
   salesPersonPhone?: string,
   transportThrough?: string,
+  transportDescription?: string,
   trackingNumber?: string,
   documentTitle?: string,
-  voucherId?: string
+  voucherId?: string,
+  officerName?: string,
+officerContact?: string,
+systemCapacity?: string
 ) => {
   console.log(`[createInvoiceModel] Starting creation for: ${invoiceNumber} by ${createdById}`);
   console.log(`[createInvoiceModel] Category: ${category}, Title: ${documentTitle}`);
@@ -87,6 +92,7 @@ export const createInvoiceModel = async (
         paymentStatus: paymentStatus || "PENDING",
         modeOfDispatch,
         transportThrough,
+        transportDescription,
         trackingNumber,
         customerName,
         customerAddress,
@@ -114,6 +120,10 @@ export const createInvoiceModel = async (
         salesPersonName,
         salesPersonPhone,
         voucherId,
+         officerName,
+  officerContact,
+  systemCapacity,
+        pdfStatus: "PENDING",
       },
       include: {
         createdBy: {
@@ -202,7 +212,7 @@ export const createInvoiceModel = async (
   } catch (pdfError: any) {
     console.error("Failed to generate/upload PDFs:", pdfError);
   }
-
+// await queueInvoicePDFJob(result.id);
   return result;
 
 };
@@ -362,75 +372,821 @@ export const getNextInvoiceNumberModel = async (companyName: string) => {
 };
 
 // Update invoice
-export const updateInvoiceModel = async (id: string, updateData: any, userId: string, userRole: any) => {
-  // Check if invoice exists and user has permission
-  const existingInvoice = await prisma.invoice.findUnique({
-    where: { id }
-  });
+// export const updateInvoiceModel = async (id: string, updateData: any, userId: string, userRole: any) => {
+//   // Check if invoice exists and user has permission
+//   const existingInvoice = await prisma.invoice.findUnique({
+//     where: { id }
+//   });
 
-  if (!existingInvoice) {
-    throw new Error('Invoice not found');
-  }
+//   if (!existingInvoice) {
+//     throw new Error('Invoice not found');
+//   }
 
-  // Normalize role
-  const normalizedRole = (typeof userRole === 'object' ? userRole?.name : userRole)?.toLowerCase()?.trim();
+//   // Normalize role
+//   const normalizedRole = (typeof userRole === 'object' ? userRole?.name : userRole)?.toLowerCase()?.trim();
 
-  if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account' && existingInvoice.createdById !== userId) {
-    throw new Error('Not authorized to update this invoice');
-  }
+//   if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account' && existingInvoice.createdById !== userId) {
+//     throw new Error('Not authorized to update this invoice');
+//   }
 
-  // Update invoice
-  const updatedInvoice = await prisma.invoice.update({
-    where: { id },
-    data: updateData,
-    include: {
-      createdBy: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-        },
-      },
-      items: true
+//   // Update invoice
+//   // const updatedInvoice = await prisma.invoice.update({
+//   //   where: { id },
+//   //   data: updateData,
+//   //   include: {
+//   //     createdBy: {
+//   //       select: {
+//   //         id: true,
+//   //         name: true,
+//   //         email: true,
+//   //         phone: true,
+//   //       },
+//   //     },
+//   //     items: true
+//   //   }
+//   // });
+
+//     // Normalize frontend payload
+//   const normalizedData =
+//     normalizeInvoiceData(updateData);
+
+//   // Delete old items first
+//   await prisma.invoiceItem.deleteMany({
+//     where: {
+//       invoiceId: id
+//     }
+//   });
+
+//   // Update invoice
+//   const updatedInvoice =
+//     await prisma.invoice.update({
+
+//       where: { id },
+
+//       data: {
+
+//         companyName:
+//           normalizedData.companyName,
+
+//         invoiceNumber:
+//           normalizedData.invoiceNumber,
+
+//         invoiceDate:
+//           normalizedData.invoiceDate,
+
+//         gstinNumber:
+//           normalizedData.gstinNumber,
+
+//         paymentStatus:
+//           normalizedData.paymentStatus,
+
+//         status:
+//           normalizedData.status,
+
+//         modeOfDispatch:
+//           normalizedData.modeOfDispatch,
+
+//         customerName:
+//           normalizedData.customerName,
+
+//         customerAddress:
+//           normalizedData.customerAddress,
+
+//         customerContact:
+//           normalizedData.customerContact,
+
+//         customerEmail:
+//           normalizedData.customerEmail,
+
+//         customerGstinUin:
+//           normalizedData.customerGstinUin,
+
+//         recipientName:
+//           normalizedData.recipientName,
+
+//         shippingAddress:
+//           normalizedData.shippingAddress,
+
+//         stateCode:
+//           normalizedData.stateCode,
+
+//         placeOfSupply:
+//           normalizedData.placeOfSupply,
+
+//         bankName:
+//           normalizedData.bankName,
+
+//         accountNumber:
+//           normalizedData.accountNumber,
+
+//         ifscCode:
+//           normalizedData.ifscCode,
+
+//         termsAndConditions:
+//           normalizedData.termsAndConditions,
+
+//         netAmount:
+//           normalizedData.netAmount,
+
+//         cashDiscount:
+//           normalizedData.cashDiscount,
+
+//         cgst:
+//           normalizedData.cgst,
+
+//         sgst:
+//           normalizedData.sgst,
+
+//         roundOff:
+//           normalizedData.roundOff,
+
+//         grandTotalPayable:
+//           normalizedData.grandTotalPayable,
+
+//         items: {
+
+//           create:
+//             normalizedData.items.map(
+//               (item: any) => ({
+
+//                 itemDescription:
+//                   item.itemDescription,
+
+//                 hsnSac:
+//                   item.hsnSac,
+
+//                 quantity:
+//                   item.quantity,
+
+//                 unit:
+//                   item.unit,
+
+//                 rate:
+//                   item.rate,
+
+//                 discount:
+//                   item.discount,
+
+//                 amount:
+//                   item.amount
+//               })
+//             )
+//         }
+//       },
+
+//       include: {
+//         createdBy: {
+//           select: {
+//             id: true,
+//             name: true,
+//             email: true,
+//             phone: true,
+//           },
+//         },
+
+//         items: true
+//       }
+//     });
+
+//   // return updatedInvoice;
+
+//   return updatedInvoice;
+// };
+
+// export const updateInvoiceModel = async (
+//     id: string,
+//     updateData: Record<string, unknown>,
+//     userId: string,
+//     userRole: string
+// ) => {
+
+//     // EXISTING INVOICE
+
+//     const existingInvoice =
+//         await prisma.invoice.findUnique({
+//             where: { id },
+//             include: {
+//                 items: true
+//             }
+//         });
+
+//     if (!existingInvoice) {
+//         throw new Error(
+//             "Invoice not found"
+//         );
+//     }
+
+//     // ROLE CHECK
+
+//     const normalizedRole =
+//         userRole?.toLowerCase()?.trim();
+
+//     if (
+//         normalizedRole !== "admin" &&
+//         normalizedRole !== "operation" &&
+//         normalizedRole !== "operations" &&
+//         normalizedRole !== "accounting" &&
+//         normalizedRole !== "account" &&
+//         existingInvoice.createdById !== userId
+//     ) {
+//         throw new Error(
+//             "Not authorized to update this invoice"
+//         );
+//     }
+
+//     // NORMALIZE
+
+//     const normalizedData =
+//         normalizeInvoiceData(updateData);
+
+//     // SAFE FINAL DATA
+
+//     const finalData = {
+
+//         companyName:
+//             normalizedData.companyName ??
+//             existingInvoice.companyName,
+
+//         invoiceNumber:
+//             normalizedData.invoiceNumber ??
+//             existingInvoice.invoiceNumber,
+
+//         invoiceDate:
+//             normalizedData.invoiceDate ??
+//             existingInvoice.invoiceDate,
+
+//         gstinNumber:
+//             normalizedData.gstinNumber ??
+//             existingInvoice.gstinNumber,
+
+//         paymentStatus:
+//             normalizedData.paymentStatus ??
+//             existingInvoice.paymentStatus,
+
+//         status:
+//             normalizedData.status ??
+//             existingInvoice.status,
+
+//         modeOfDispatch:
+//             normalizedData.modeOfDispatch ??
+//             existingInvoice.modeOfDispatch,
+
+//         transportThrough:
+//             normalizedData.transportThrough ??
+//             existingInvoice.transportThrough,
+
+//         transportDescription:
+//             normalizedData.transportDescription ??
+//             existingInvoice.transportDescription,
+
+//         trackingNumber:
+//             normalizedData.trackingNumber ??
+//             existingInvoice.trackingNumber,
+
+//         customerName:
+//             normalizedData.customerName ??
+//             existingInvoice.customerName,
+
+//         customerAddress:
+//             normalizedData.customerAddress ??
+//             existingInvoice.customerAddress,
+
+//         customerContact:
+//             normalizedData.customerContact ??
+//             existingInvoice.customerContact,
+
+//         customerEmail:
+//             normalizedData.customerEmail ??
+//             existingInvoice.customerEmail,
+
+//         customerGstinUin:
+//             normalizedData.customerGstinUin ??
+//             existingInvoice.customerGstinUin,
+
+//         recipientName:
+//             normalizedData.recipientName ??
+//             existingInvoice.recipientName,
+
+//         shippingAddress:
+//             normalizedData.shippingAddress ??
+//             existingInvoice.shippingAddress,
+
+//         stateCode:
+//             normalizedData.stateCode ??
+//             existingInvoice.stateCode,
+
+//         placeOfSupply:
+//             normalizedData.placeOfSupply ??
+//             existingInvoice.placeOfSupply,
+
+//         bankName:
+//             normalizedData.bankName ??
+//             existingInvoice.bankName,
+
+//         accountNumber:
+//             normalizedData.accountNumber ??
+//             existingInvoice.accountNumber,
+
+//         ifscCode:
+//             normalizedData.ifscCode ??
+//             existingInvoice.ifscCode,
+
+//         termsAndConditions:
+//             normalizedData.termsAndConditions ??
+//             existingInvoice.termsAndConditions,
+
+//         amountInWords:
+//             normalizedData.amountInWords ??
+//             existingInvoice.amountInWords,
+
+//         category:
+//             normalizedData.category ??
+//             existingInvoice.category,
+
+//         currency:
+//             normalizedData.currency ??
+//             existingInvoice.currency,
+
+//         exchangeRate:
+//             normalizedData.exchangeRate ??
+//             existingInvoice.exchangeRate,
+
+//         swiftCode:
+//             normalizedData.swiftCode ??
+//             existingInvoice.swiftCode,
+
+//         salesPersonName:
+//             normalizedData.salesPersonName ??
+//             existingInvoice.salesPersonName,
+
+//         salesPersonPhone:
+//             normalizedData.salesPersonPhone ??
+//             existingInvoice.salesPersonPhone,
+
+//         officerName:
+//             normalizedData.officerName ??
+//             existingInvoice.officerName,
+
+//         officerContact:
+//             normalizedData.officerContact ??
+//             existingInvoice.officerContact,
+
+//         systemCapacity:
+//             normalizedData.systemCapacity ??
+//             existingInvoice.systemCapacity,
+
+//         netAmount:
+//             normalizedData.netAmount ??
+//             existingInvoice.netAmount,
+
+//         cashDiscount:
+//             normalizedData.cashDiscount ??
+//             existingInvoice.cashDiscount,
+
+//         cgst:
+//             normalizedData.cgst ??
+//             existingInvoice.cgst,
+
+//         sgst:
+//             normalizedData.sgst ??
+//             existingInvoice.sgst,
+
+//         roundOff:
+//             normalizedData.roundOff ??
+//             existingInvoice.roundOff,
+
+//         grandTotalPayable:
+//             normalizedData.grandTotalPayable ??
+//             existingInvoice.grandTotalPayable,
+//     };
+
+//     // UPDATE ITEMS ONLY IF ITEMS SENT
+
+//     const hasItemsInPayload =
+//         Object.prototype.hasOwnProperty.call(
+//             updateData,
+//             "items"
+//         );
+
+//     if (
+//         hasItemsInPayload &&
+//         Array.isArray(normalizedData.items)
+//     ) {
+
+//         await prisma.invoiceItem.deleteMany({
+//             where: {
+//                 invoiceId: id
+//             }
+//         });
+
+//         await prisma.invoiceItem.createMany({
+//             data: normalizedData.items.map(
+//                 (item: any) => ({
+
+//                     invoiceId: id,
+
+//                     itemDescription:
+//                         item.itemDescription || "",
+
+//                     hsnSac:
+//                         item.hsnSac || "",
+
+//                     quantity:
+//                         Number(
+//                             item.quantity || 0
+//                         ),
+
+//                     unit:
+//                         item.unit || "PCS",
+
+//                     rate:
+//                         Number(item.rate || 0),
+
+//                     discount:
+//                         Number(
+//                             item.discount || 0
+//                         ),
+
+//                     amount:
+//                         Number(item.amount || 0),
+//                 })
+//             )
+//         });
+//     }
+
+//     // UPDATE INVOICE
+
+//     const updatedInvoice =
+//         await prisma.invoice.update({
+
+//             where: { id },
+
+//             data: finalData,
+
+//             include: {
+
+//                 createdBy: {
+//                     select: {
+//                         id: true,
+//                         name: true,
+//                         email: true,
+//                         phone: true,
+//                     },
+//                 },
+
+//                 items: true,
+//             },
+//         });
+
+//     return updatedInvoice;
+// };
+
+
+
+export const updateInvoiceModel = async (
+    id: string,
+    updateData: Record<string, unknown>,
+    userId: string,
+    userRole: string
+) => {
+
+    // EXISTING INVOICE
+
+    const existingInvoice =
+        await prisma.invoice.findUnique({
+            where: { id },
+            include: {
+                items: true
+            }
+        });
+
+    if (!existingInvoice) {
+        throw new Error(
+            "Invoice not found"
+        );
     }
-  });
 
-  return updatedInvoice;
+    // ROLE CHECK
+
+    const normalizedRole =
+        userRole?.toLowerCase()?.trim();
+
+    if (
+        normalizedRole !== "admin" &&
+        normalizedRole !== "operation" &&
+        normalizedRole !== "operations" &&
+        normalizedRole !== "accounting" &&
+        normalizedRole !== "account" &&
+        existingInvoice.createdById !== userId
+    ) {
+        throw new Error(
+            "Not authorized to update this invoice"
+        );
+    }
+
+    // NORMALIZE DATA
+
+    const normalizedData =
+        normalizeInvoiceData(updateData);
+
+    // REMOVE ITEMS FROM MAIN UPDATE
+
+   const {
+    items,
+    ...invoiceData
+} = normalizedData;
+
+    // UPDATE ITEMS ONLY IF SENT
+
+    const hasItemsInPayload =
+        Object.prototype.hasOwnProperty.call(
+            updateData,
+            "items"
+        );
+
+    if (
+        hasItemsInPayload &&
+        Array.isArray(items)
+    ) {
+
+        await prisma.invoiceItem.deleteMany({
+            where: {
+                invoiceId: id
+            }
+        });
+
+        await prisma.invoiceItem.createMany({
+            data: items.map(
+                (item: {
+                    itemDescription?: string;
+                    hsnSac?: string;
+                    quantity?: number;
+                    unit?: string;
+                    rate?: number;
+                    discount?: number;
+                    amount?: number;
+                }) => ({
+
+                    invoiceId: id,
+
+                    itemDescription:
+                        item.itemDescription || "",
+
+                    hsnSac:
+                        item.hsnSac || "",
+
+                    quantity:
+                        Number(
+                            item.quantity || 0
+                        ),
+
+                    unit:
+                        item.unit || "PCS",
+
+                    rate:
+                        Number(item.rate || 0),
+
+                    discount:
+                        Number(
+                            item.discount || 0
+                        ),
+
+                    amount:
+                        Number(item.amount || 0),
+                })
+            )
+        });
+    }
+
+    // MAIN UPDATE
+const remainingAmount =
+    Number(existingInvoice.grandTotalPayable || 0) -
+    Number(normalizedData.paidAmount || 0);
+    const updatedInvoice =
+        await prisma.invoice.update({
+
+
+            where: { id },
+
+            // data: invoiceData,
+
+            data: {
+
+    ...invoiceData,
+
+    ...(normalizedData.rejectionReason !== undefined && {
+    rejectionReason:
+        normalizedData.rejectionReason,
+}),
+
+    ...(normalizedData.paidAmount !== undefined && {
+        paidAmount:
+            normalizedData.paidAmount,
+    }),
+
+    ...(normalizedData.paidType !== undefined && {
+        paidType:
+            normalizedData.paidType,
+    }),
+
+    ...(normalizedData.advancedEnabled !== undefined && {
+        advancedEnabled:
+            normalizedData.advancedEnabled,
+    }),
+
+    ...(normalizedData.additionalAmount !== undefined && {
+        additionalAmount:
+            normalizedData.additionalAmount,
+    }),
+
+//     ...(normalizedData.paidAmount !== undefined && {
+//         remainingAmount:
+//             (
+//                 Number(
+//                     existingInvoice.grandTotalPayable || 0
+//                 ) -
+//                 Number(
+//                     normalizedData.paidAmount || 0
+//                 )
+//             ) > 0
+//                 ? (
+//                     Number(
+//                         existingInvoice.grandTotalPayable || 0
+//                     ) -
+//                     Number(
+//                         normalizedData.paidAmount || 0
+//                     )
+//                 )
+//                 : 0,
+//     }),
+// },
+
+...(normalizedData.paidAmount !== undefined && {
+    remainingAmount:
+        (
+            Number(
+                existingInvoice.grandTotalPayable || 0
+            ) -
+
+            Number(
+                normalizedData.paidAmount || 0
+            ) -
+
+            (
+                normalizedData.advancedEnabled
+                    ? Number(
+                        normalizedData.additionalAmount || 0
+                      )
+                    : 0
+            )
+
+        ) > 0
+            ? (
+                Number(
+                    existingInvoice.grandTotalPayable || 0
+                ) -
+
+                Number(
+                    normalizedData.paidAmount || 0
+                ) -
+
+                (
+                    normalizedData.advancedEnabled
+                        ? Number(
+                            normalizedData.additionalAmount || 0
+                          )
+                        : 0
+                )
+            )
+            : 0,
+}),
+            },
+
+            include: {
+
+                createdBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+
+                items: true,
+            },
+        });
+
+    return updatedInvoice;
 };
 
 // Delete invoice
-export const deleteInvoiceModel = async (id: string, userId: string, userRole: any) => {
-  // Check if invoice exists and user has permission
-  const existingInvoice = await prisma.invoice.findUnique({
-    where: { id }
-  });
+// export const deleteInvoiceModel = async (id: string, userId: string, userRole: any) => {
+//   // Check if invoice exists and user has permission
+//   const existingInvoice = await prisma.invoice.findUnique({
+//     where: { id }
+//   });
 
-  if (!existingInvoice) {
-    throw new Error('Invoice not found');
-  }
+//   if (!existingInvoice) {
+//     throw new Error('Invoice not found');
+//   }
 
-  if (userRole !== 'admin' && existingInvoice.createdById !== userId) {
-    throw new Error('Not authorized to delete this invoice');
-  }
+//   if (userRole !== 'admin' && existingInvoice.createdById !== userId) {
+//     throw new Error('Not authorized to delete this invoice');
+//   }
 
-  if (existingInvoice.pdfFilePath) {
-    await deletePDFFromSupabase(existingInvoice.pdfFilePath, 'invoices');
-  }
+//   if (existingInvoice.pdfFilePath) {
+//     await deletePDFFromSupabase(existingInvoice.pdfFilePath, 'invoices');
+//   }
 
-  // @ts-ignore
-  if (existingInvoice.pdfSalesFilePath) {
+//   // @ts-ignore
+//   if (existingInvoice.pdfSalesFilePath) {
+//     // @ts-ignore
+//     await deletePDFFromSupabase(existingInvoice.pdfSalesFilePath, 'invoices');
+//   }
+
+
+//   // Delete invoice (cascade will delete items)
+//   await prisma.invoice.delete({
+//     where: { id }
+//   });
+
+//   return { message: "Invoice deleted successfully" };
+// };
+
+export const deleteInvoiceModel = async (
+    id: string,
+    userId: string,
+    userRole: any
+) => {
+
+    // CHECK EXISTING
+
+    const existingInvoice =
+        await prisma.invoice.findUnique({
+            where: { id }
+        });
+
+    if (!existingInvoice) {
+        throw new Error("Invoice not found");
+    }
+
+    // ROLE CHECK
+
+    const normalizedRole =
+        typeof userRole === "object"
+            ? userRole?.name
+            : userRole;
+
+    if (
+        normalizedRole !== "admin" &&
+        existingInvoice.createdById !== userId
+    ) {
+        throw new Error(
+            "Not authorized to delete this invoice"
+        );
+    }
+
+    // DELETE PDFs
+
+    if (existingInvoice.pdfFilePath) {
+
+        await deletePDFFromSupabase(
+            existingInvoice.pdfFilePath,
+            "invoices"
+        );
+    }
+
     // @ts-ignore
-    await deletePDFFromSupabase(existingInvoice.pdfSalesFilePath, 'invoices');
-  }
+    if (existingInvoice.pdfSalesFilePath) {
 
+        // @ts-ignore
+        await deletePDFFromSupabase(
+            existingInvoice.pdfSalesFilePath,
+            "invoices"
+        );
+    }
 
-  // Delete invoice (cascade will delete items)
-  await prisma.invoice.delete({
-    where: { id }
-  });
+    // DELETE CHILD ITEMS FIRST
 
-  return { message: "Invoice deleted successfully" };
+    await prisma.invoiceItem.deleteMany({
+        where: {
+            invoiceId: id
+        }
+    });
+
+    // DELETE INVOICE
+
+    await prisma.invoice.delete({
+        where: {
+            id
+        }
+    });
+
+    return {
+        message:
+            "Invoice deleted successfully"
+    };
 };
 
 export const getInvoiceDownloadURLModel = async (id: string) => {
@@ -440,9 +1196,12 @@ export const getInvoiceDownloadURLModel = async (id: string) => {
     throw new Error('Invoice not found');
   }
 
+  // if (!invoice.pdfFilePath) {
+  //   throw new Error('No PDF available for this invoice');
+  // }
   if (!invoice.pdfFilePath) {
-    throw new Error('No PDF available for this invoice');
-  }
+  throw new Error("PDF not ready yet. Try again later.");
+}
 
   const signedURL = await generateSignedURL(invoice.pdfFilePath, 'invoices');
   return { url: signedURL };
@@ -652,5 +1411,168 @@ export const convertToProformaModel = async (
   }
 
   return updatedInvoice;
+};
+
+export const convertToTaxInvoiceModel = async (
+
+    id: string,
+
+    userId: string,
+
+    userRole: any,
+
+    taxData: any
+
+) => {
+
+    const existingInvoice =
+        await prisma.invoice.findUnique({
+
+            where: { id },
+
+            include: {
+                items: true
+            }
+        });
+
+    if (!existingInvoice) {
+        throw new Error(
+            "Invoice not found"
+        );
+    }
+
+    const normalizedRole =
+        (
+            typeof userRole === "object"
+                ? userRole?.name
+                : userRole
+        )
+            ?.toLowerCase()
+            ?.trim();
+
+    if (
+        normalizedRole !== "admin" &&
+        normalizedRole !== "sales" &&
+        normalizedRole !== "accounting" &&
+        normalizedRole !== "operation" &&
+        normalizedRole !== "operations"
+    ) {
+        throw new Error(
+            "Not authorized to convert invoice"
+        );
+    }
+
+    if (
+        existingInvoice.invoiceType ===
+        "TAX_INVOICE"
+    ) {
+        throw new Error(
+            "Tax Invoice already generated"
+        );
+    }
+
+    // CALCULATE TOTAL TAX
+
+    const totalTaxAmount =
+
+        (existingInvoice.cgst || 0) +
+
+        (existingInvoice.sgst || 0) +
+
+        (existingInvoice.igst || 0);
+
+    const updatedInvoice =
+        await prisma.invoice.update({
+
+            where: { id },
+
+            data: {
+
+                invoiceType:
+                    "TAX_INVOICE",
+
+                status:
+                    "TAX_INVOICE_GENERATED",
+
+                taxInvoiceGeneratedAt:
+                    new Date(),
+
+                taxInvoiceGeneratedBy:
+                    userId,
+
+                totalTaxableAmount:
+                    existingInvoice.netAmount,
+
+                totalTaxAmount,
+
+                ewayBillNumber:
+                    taxData.ewayBillNumber,
+
+                deliveryNote:
+                    taxData.deliveryNote,
+
+                referenceNumber:
+                    taxData.referenceNumber,
+
+                referenceDate:
+                    taxData.referenceDate
+                        ? new Date(
+                            taxData.referenceDate
+                        )
+                        : null,
+
+                buyerOrderNumber:
+                    taxData.buyerOrderNumber,
+
+                dispatchDocNumber:
+                    taxData.dispatchDocNumber,
+
+                deliveryNoteDate:
+                    taxData.deliveryNoteDate
+                        ? new Date(
+                            taxData.deliveryNoteDate
+                        )
+                        : null,
+
+                destination:
+                    taxData.destination,
+
+                termsOfDelivery:
+                    taxData.termsOfDelivery,
+
+                authorizedSignatory:
+                    taxData.authorizedSignatory,
+
+                companyPan:
+                    taxData.companyPan,
+
+                stateName:
+                    taxData.stateName,
+
+                buyerStateName:
+                    taxData.buyerStateName,
+
+                lrNumber:
+                    taxData.lrNumber,
+
+                vehicleNumber:
+                    taxData.vehicleNumber,
+
+                reverseCharge:
+                    taxData.reverseCharge,
+
+                taxInvoiceRemarks:
+                    taxData.taxInvoiceRemarks
+            },
+
+            include: {
+
+                items: true,
+
+                createdBy: true
+            }
+        });
+
+    return updatedInvoice;
 };
 

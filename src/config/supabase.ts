@@ -1,10 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Centralized Supabase client
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+// export const supabase = createClient(
+//   process.env.SUPABASE_URL!,
+//   process.env.SUPABASE_ANON_KEY!
+// );
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Supabase environment variables missing");
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Helper for storage operations (can use the same client)
 export const supabaseStorage = supabase;

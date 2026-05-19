@@ -1,5 +1,7 @@
 import express from "express";
 import { prisma } from "../../config/prisma";
+import { auth } from "../../middleware/auth";
+import { getCompanyDashboardOverview, getDashboardOverview } from "../controller/dashboard.controller";
 
 const router = express.Router();
 
@@ -31,5 +33,16 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Dashboard fetch failed" });
   }
 });
+
+router.get(
+  "/overview",
+  auth,
+  getDashboardOverview
+);
+router.get(
+    "/company-overview",
+    getCompanyDashboardOverview
+);
+
 
 export default router;

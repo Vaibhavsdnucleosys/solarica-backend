@@ -17,7 +17,8 @@ import {
   uploadQuotationDocs,
   getQuotationDocs,
   updateQuotation,
-  getNextEstimateNumber
+  getNextEstimateNumber,
+  convertQuotationToProforma
 } from "../controller/quotation.controller";
 import { createProductionTask } from "../controller/production-task.controller";
 
@@ -52,6 +53,16 @@ quotationRouter.put("/:id", auth, allow("admin", "sales", "accounting", "operati
 // Admin only routes
 quotationRouter.delete("/:id", auth, allow("admin"), deleteQuotation);
 quotationRouter.post("/:quotationId/create-production-task", auth, allow("admin", "sales", "operation", "manager"), createProductionTask);
-
+quotationRouter.patch(
+  "/:id/proforma",
+  auth,
+  allow(
+    "admin",
+    "sales",
+    "accounting",
+    "operation"
+  ),
+  convertQuotationToProforma
+);
 export default quotationRouter;
 

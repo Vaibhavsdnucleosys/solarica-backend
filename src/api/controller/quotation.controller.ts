@@ -14,7 +14,8 @@ import {
   updateQuotationDocsModel,
   getQuotationDocsURLModel,
   updateQuotationModel,
-  getNextEstimateNumberModel
+  getNextEstimateNumberModel,
+  convertQuotationToProformaModel
 } from "../model/quotation.model";
 import { addQuotationJob } from "../../queues/quotation.queue";
 
@@ -73,6 +74,7 @@ export const createQuotation = async (req: Request, res: Response) => {
       companyEmail,
       companyPhone,
       fromCompanyName,
+      fromGstNumber,
       systemCapacityKw,
       systemCost,
       items,
@@ -109,6 +111,7 @@ export const createQuotation = async (req: Request, res: Response) => {
       userId,
       items,
       fromCompanyName,
+      fromGstNumber,
       consumerNumber,
       BillingNumber,
       CustomerNumber,
@@ -383,6 +386,62 @@ export const deleteQuotation = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const convertQuotationToProforma = async (
+  req: Request,
+  res: Response
+) => {
+
+  try {
+
+    const { id } = req.params;
+
+    const userId =
+      (req as any).user.id;
+
+    const userRole =
+      (req as any).user.role;
+
+    const {
+      advancedEnabled,
+      additionalAmount
+    } = req.body;
+
+    const result =
+      await convertQuotationToProformaModel(
+        id,
+        userId,
+        userRole,
+        advancedEnabled,
+        additionalAmount
+      );
+
+    await createNotificationModel(
+      "Quotation Converted 🔄",
+      `Quotation for ${result.companyName} converted to Proforma`,
+      "INFO",
+      result.id,
+      result.createdById
+    );
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Quotation converted successfully",
+      data: result
+    });
+
+  } catch (error: any) {
+
+    res.status(400).json({
+      success: false,
+      message:
+        error.message ||
+        "Failed to convert quotation"
+    });
+  }
+};
+
 
 // Get service types (Public)
 export const getServiceTypes = async (req: Request, res: Response) => {

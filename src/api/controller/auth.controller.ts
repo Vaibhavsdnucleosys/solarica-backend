@@ -70,7 +70,7 @@ export const adminLogin = async (req: Request, res: Response) => {
   if (!valid) return res.status(401).json({ message: "Invalid password" });
 
   const token = jwt.sign(
-    { id: admin.id, role: admin.role.name, email: admin.email },
+    { id: admin.id, role: admin.role.name, email: admin.email , companyName: admin.company},
     process.env.JWT_SECRET!,
     { expiresIn: "7d" }
   );
@@ -103,7 +103,7 @@ export const employeeLogin = async (req: Request, res: Response) => {
   if (!valid) return res.status(401).json({ message: "Invalid password" });
 
   const token = jwt.sign(
-    { id: user.id, role: user.role.name, email: user.email },
+    { id: user.id, role: user.role.name, email: user.email, companyName: user.company },
     process.env.JWT_SECRET!,
     { expiresIn: "7d" }
   );
@@ -190,7 +190,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role.name, email: user.email },
+      { id: user.id, role: user.role.name, email: user.email,companyName: user.company },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );

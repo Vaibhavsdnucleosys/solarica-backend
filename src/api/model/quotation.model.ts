@@ -71,6 +71,7 @@ export const createQuotationModel = async (
     quantity: string;
   }>,
   fromCompanyName?: string,
+  fromGstNumber?: string,
   consumerNumber?: string,
   BillingNumber?: string,
   CustomerNumber?: string,
@@ -89,7 +90,7 @@ export const createQuotationModel = async (
   totalAmount?: number,
   subsidyAmount?: number,
   netPayableAmount?: number,
-  validityDays?: number
+  validityDays?: number,
 ) => {
   // Validate basic inputs
   if (!companyName || !companyEmail) {
@@ -124,6 +125,7 @@ export const createQuotationModel = async (
         phase,
         numberOfFlats,
         fromCompanyName,
+        fromGstNumber,
         createdById,
         consumerNumber,
         BillingNumber,
@@ -149,20 +151,83 @@ export const createQuotationModel = async (
     });
     // Create quotation items
     if (items && items.length > 0) {
+      // await tx.quotationItem.createMany({
+      //   data: items.map((item: any) => ({
+      //     quotationId: quotation.id,
+      //     specification: item.specification || null,
+      //     specification1: item.specification1 || item['specification-1'] || null,
+      //     specification2: item.specification2 || item['specification-2'] || null,
+      //     specification3: item.specification3 || item['specification-3'] || null,
+      //     specification7: item.specification7 || item['specification-7'] || null,
+      //     specification8: item.specification8 || item['specification-8'] || null,
+      //     specification9: item.specification9 || item['specification-9'] || null,
+      //     make1: item.make1,
+      //     make2: item.make2
+      //   }))
+      // });
+
       await tx.quotationItem.createMany({
-        data: items.map((item: any) => ({
-          quotationId: quotation.id,
-          specification: item.specification || null,
-          specification1: item.specification1 || item['specification-1'] || null,
-          specification2: item.specification2 || item['specification-2'] || null,
-          specification3: item.specification3 || item['specification-3'] || null,
-          specification7: item.specification7 || item['specification-7'] || null,
-          specification8: item.specification8 || item['specification-8'] || null,
-          specification9: item.specification9 || item['specification-9'] || null,
-          make1: item.make1,
-          make2: item.make2
-        }))
-      });
+
+  data: items.map((item: any) => ({
+
+    quotationId: quotation.id,
+
+    itemName:
+      item.itemName ||
+      item.name ||
+      item.make1 ||
+      "",
+
+    quantity:
+      String(
+        item.quantity ||
+        item.qty ||
+        ""
+      ),
+
+    specification:
+      item.specification || null,
+
+    specification1:
+      item.specification1 ||
+      item['specification-1'] ||
+      null,
+
+    specification2:
+      item.specification2 ||
+      item['specification-2'] ||
+      null,
+
+    specification3:
+      item.specification3 ||
+      item['specification-3'] ||
+      null,
+
+    specification7:
+      item.specification7 ||
+      item['specification-7'] ||
+      null,
+
+    specification8:
+      item.specification8 ||
+      item['specification-8'] ||
+      null,
+
+    specification9:
+      item.specification9 ||
+      item['specification-9'] ||
+      null,
+
+    make1:
+      item.make1 ||
+      item.make ||
+      "",
+
+    make2:
+      item.make2 || ""
+
+  }))
+});
     }
     return quotation;
   });
@@ -266,10 +331,111 @@ export const getQuotationByIdModel = async (id: string) => {
 
 
 // Generic update quotation
-export const updateQuotationModel = async (id: string, data: any) => {
-  return await prisma.quotation.update({
+// export const updateQuotationModel = async (id: string, data: any) => {
+//   return await prisma.quotation.update({
+//     where: { id },
+//     data
+//   });
+// };
+
+export const updateQuotationModel = async (
+  id: string,
+  data: any
+) => {
+
+  const {
+    items,
+    serviceType,
+    ...quotationData
+  } = data;
+
+  // UPDATE QUOTATION
+
+  const updatedQuotation =
+    await prisma.quotation.update({
+
+      where: { id },
+
+      data: {
+        ...quotationData
+      }
+
+    });
+
+  // UPDATE ITEMS
+
+  if (
+    items &&
+    Array.isArray(items)
+  ) {
+
+    // DELETE OLD ITEMS
+
+    await prisma.quotationItem.deleteMany({
+      where: {
+        quotationId: id
+      }
+    });
+
+    // CREATE NEW ITEMS
+
+    await prisma.quotationItem.createMany({
+
+      data: items.map(
+        (item: any) => ({
+
+          quotationId: id,
+
+          itemName:
+            item.itemName || "",
+
+          quantity:
+            item.qty ||
+            item.quantity ||
+            "",
+
+          make1:
+            item.make ||
+            item.make1 ||
+            "",
+
+          make2:
+            item.make2 || "",
+
+          specification:
+            item.specification || "",
+
+          specification1:
+            item.specification1 || "",
+
+          specification2:
+            item.specification2 || "",
+
+          specification3:
+            item.specification3 || "",
+
+          specification7:
+            item.specification7 || "",
+
+          specification8:
+            item.specification8 || "",
+
+          specification9:
+            item.specification9 || ""
+
+        }))
+    });
+  }
+
+  return await prisma.quotation.findUnique({
+
     where: { id },
-    data
+
+    include: {
+      createdBy: true,
+      items: true
+    }
+
   });
 };
 
@@ -294,29 +460,108 @@ export const rejectQuotationWithReasonModel = async (id: string, reason: string)
 };
 
 // Delete quotation
-export const deleteQuotationModel = async (id: string) => {
-  const quotation = await prisma.quotation.findUnique({ where: { id } });
+// export const deleteQuotationModel = async (id: string) => {
+//   const quotation = await prisma.quotation.findUnique({ where: { id } });
 
-  if (!quotation) {
-    throw new Error('Quotation not found');
-  }
+//   if (!quotation) {
+//     throw new Error('Quotation not found');
+//   }
 
-  // Delete PDF from Supabase Storage if exists
-  if (quotation.pdfFilePath) {
-    await deletePDFFromSupabase(quotation.pdfFilePath, 'quotations');
-  }
+//   // Delete PDF from Supabase Storage if exists
+//   if (quotation.pdfFilePath) {
+//     await deletePDFFromSupabase(quotation.pdfFilePath, 'quotations');
+//   }
 
-  // Delete extra docs if they exist
-  // @ts-ignore
-  if (quotation.doc1) await deletePDFFromSupabase(quotation.doc1, 'documents');
-  // @ts-ignore
-  if (quotation.doc2) await deletePDFFromSupabase(quotation.doc2, 'documents');
-  // @ts-ignore
-  if (quotation.doc3) await deletePDFFromSupabase(quotation.doc3, 'documents');
+//   // Delete extra docs if they exist
+//   // @ts-ignore
+//   if (quotation.doc1) await deletePDFFromSupabase(quotation.doc1, 'documents');
+//   // @ts-ignore
+//   if (quotation.doc2) await deletePDFFromSupabase(quotation.doc2, 'documents');
+//   // @ts-ignore
+//   if (quotation.doc3) await deletePDFFromSupabase(quotation.doc3, 'documents');
 
 
-  await prisma.quotation.delete({ where: { id } });
-  return { message: 'Quotation deleted successfully' };
+//   await prisma.quotation.delete({ where: { id } });
+//   return { message: 'Quotation deleted successfully' };
+// };
+
+export const deleteQuotationModel = async (
+    id: string
+) => {
+
+    const quotation =
+        await prisma.quotation.findUnique({
+            where: { id }
+        });
+
+    if (!quotation) {
+        throw new Error(
+            "Quotation not found"
+        );
+    }
+
+    // DELETE PDF
+
+    if (quotation.pdfFilePath) {
+
+        await deletePDFFromSupabase(
+            quotation.pdfFilePath,
+            "quotations"
+        );
+    }
+
+    // DELETE DOCS
+
+    // @ts-ignore
+    if (quotation.doc1) {
+
+        // @ts-ignore
+        await deletePDFFromSupabase(
+            quotation.doc1,
+            "documents"
+        );
+    }
+
+    // @ts-ignore
+    if (quotation.doc2) {
+
+        // @ts-ignore
+        await deletePDFFromSupabase(
+            quotation.doc2,
+            "documents"
+        );
+    }
+
+    // @ts-ignore
+    if (quotation.doc3) {
+
+        // @ts-ignore
+        await deletePDFFromSupabase(
+            quotation.doc3,
+            "documents"
+        );
+    }
+
+    // DELETE CHILD ITEMS FIRST
+
+    await prisma.quotationItem.deleteMany({
+        where: {
+            quotationId: id
+        }
+    });
+
+    // DELETE QUOTATION
+
+    await prisma.quotation.delete({
+        where: {
+            id
+        }
+    });
+
+    return {
+        message:
+            "Quotation deleted successfully"
+    };
 };
 
 // Get PDF download URL
@@ -389,6 +634,100 @@ export const updateQuotationDocsModel = async (id: string, docs: { doc1?: string
     // @ts-ignore
     data: docs
   });
+};
+
+export const convertQuotationToProformaModel = async (
+  id: string,
+  userId: string,
+  userRole: any,
+  advanced?: boolean,
+  additionalAmount?: number,
+) => {
+
+  const quotation = await prisma.quotation.findUnique({
+    where: { id },
+    include: {
+      createdBy: true,
+      items: true
+    }
+  });
+
+  if (!quotation) {
+    throw new Error("Quotation not found");
+  }
+
+  const normalizedRole =
+    (typeof userRole === "object"
+      ? userRole?.name
+      : userRole)
+      ?.toLowerCase()
+      ?.trim();
+
+  if (
+    normalizedRole !== "admin" &&
+    normalizedRole !== "operation" &&
+    normalizedRole !== "operations" &&
+    normalizedRole !== "accounting" &&
+    normalizedRole !== "account" &&
+    quotation.createdById !== userId
+  ) {
+    throw new Error(
+      "Not authorized to convert this quotation"
+    );
+  }
+
+  if (quotation.isProforma) {
+    throw new Error(
+      "Quotation already converted to Proforma"
+    );
+  }
+
+  const updatedQuotation =
+    await prisma.quotation.update({
+      where: { id },
+
+      data: {
+        isProforma: true,
+        advancedEnabled: advanced || false,
+        additionalAmount: additionalAmount || 0
+      },
+
+      include: {
+        createdBy: true,
+        items: true
+      }
+    });
+
+  // REGENERATE PDF
+  try {
+
+    const quotationForPDF = {
+      ...updatedQuotation,
+      documentTitle: "PROFORMA INVOICE"
+    };
+
+    const pdfFilePath =
+      await generateQuotationPDF(
+        quotationForPDF
+      );
+
+    await prisma.quotation.update({
+      where: { id },
+
+      data: {
+        pdfFilePath
+      }
+    });
+
+  } catch (pdfError) {
+
+    console.error(
+      "PDF regeneration failed",
+      pdfError
+    );
+  }
+
+  return updatedQuotation;
 };
 
 export const getQuotationDocsURLModel = async (id: string) => {

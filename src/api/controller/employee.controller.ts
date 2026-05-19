@@ -11,30 +11,82 @@ import {
 } from "../model/employee.model";
 
 // Create new employee (Admin only)
-export const createEmployee = async (req: Request, res: Response) => {
-  const { email, password, roleName, name, mobile, grants } = req.body;
+// export const createEmployee = async (req: Request, res: Response) => {
+//   const { email, password, roleName, name, mobile, grants } = req.body;
 
-  // Validate input
-  if (!email || !password || !roleName || !name) {
+//   // Validate input
+//   if (!email || !password || !roleName || !name) {
+//     return res.status(400).json({
+//       message: "Email, password, role, and name required"
+//     });
+//   }
+
+//   try {
+//     const result = await createEmployeeModel(email, password, roleName, name, mobile);
+//     res.status(201).json({
+//       message: "Employee created successfully",
+//       employee: result
+//     });
+//   } catch (error: any) {
+//     if (error.message === "User with this email already exists") {
+//       return res.status(409).json({ message: error.message });
+//     }
+//     if (error.message.includes("Role must be one of")) {
+//       return res.status(400).json({ message: error.message });
+//     }
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
+export const createEmployee = async (req: Request, res: Response) => {
+  // Destructure 'company' from the frontend request
+  const { email, password, roleName, name, mobile, company } = req.body;
+
+  if (!email || !password || !roleName || !name || !company) {
     return res.status(400).json({
-      message: "Email, password, role, and name required"
+      message: "Email, password, role, name, and company are required"
     });
   }
 
   try {
-    const result = await createEmployeeModel(email, password, roleName, name, mobile);
+    const result = await createEmployeeModel(email, password, roleName, name, mobile, company);
     res.status(201).json({
       message: "Employee created successfully",
       employee: result
     });
   } catch (error: any) {
-    if (error.message === "User with this email already exists") {
-      return res.status(409).json({ message: error.message });
-    }
-    if (error.message.includes("Role must be one of")) {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: "Internal server error" });
+    if (error.message === "User with this email already exists") return res.status(409).json({ message: error.message });
+    res.status(500).json({ message: error.message || "Internal server error" });
+  }
+};
+
+export const updateEmployee = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+  name,
+  email,
+  roleName,
+  mobile,
+  company,
+  newPassword
+} = req.body;
+
+  try {
+    const user = await updateEmployeeModel(
+  id,
+  name,
+  email,
+  roleName,
+  mobile,
+  company,
+  newPassword
+);
+    res.json({
+      message: "Employee updated successfully",
+      employee: user
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
 
@@ -70,26 +122,26 @@ export const getEmployeeById = async (req: Request, res: Response) => {
 };
 
 // Update employee (Admin only)
-export const updateEmployee = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { name, email, roleName, mobile } = req.body;
+// export const updateEmployee = async (req: Request, res: Response) => {
+//   const { id } = req.params;
+//   const { name, email, roleName, mobile } = req.body;
 
-  try {
-    const user = await updateEmployeeModel(id, name, email, roleName, mobile);
-    res.json({
-      message: "Employee updated successfully",
-      employee: user
-    });
-  } catch (error: any) {
-    if (error.message === "User not found") {
-      return res.status(404).json({ message: error.message });
-    }
-    if (error.message === "Email already exists" || error.message.includes("Role must be one of")) {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+//   try {
+//     const user = await updateEmployeeModel(id, name, email, roleName, mobile);
+//     res.json({
+//       message: "Employee updated successfully",
+//       employee: user
+//     });
+//   } catch (error: any) {
+//     if (error.message === "User not found") {
+//       return res.status(404).json({ message: error.message });
+//     }
+//     if (error.message === "Email already exists" || error.message.includes("Role must be one of")) {
+//       return res.status(400).json({ message: error.message });
+//     }
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 // Delete employee (Admin only)
 export const deleteEmployee = async (req: Request, res: Response) => {
