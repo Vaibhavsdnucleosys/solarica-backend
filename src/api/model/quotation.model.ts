@@ -338,104 +338,183 @@ export const getQuotationByIdModel = async (id: string) => {
 //   });
 // };
 
-export const updateQuotationModel = async (
-  id: string,
-  data: any
-) => {
+// export const updateQuotationModel = async (
+//   id: string,
+//   data: any
+// ) => {
 
-  const {
-    items,
-    serviceType,
-    ...quotationData
-  } = data;
+//   const {
+//     items,
+//     serviceType,
+//     ...quotationData
+//   } = data;
 
-  // UPDATE QUOTATION
+//   // UPDATE QUOTATION
 
-  const updatedQuotation =
-    await prisma.quotation.update({
+//   const updatedQuotation = await prisma.quotation.update({
 
-      where: { id },
+//       where: { id },
 
-      data: {
-        ...quotationData
-      }
+//       data: {
+//         ...quotationData
+//       }
 
-    });
+//     });
 
-  // UPDATE ITEMS
+//      // UPDATE ITEMS
 
-  if (
-    items &&
-    Array.isArray(items)
-  ) {
+//      if (
+//     items &&
+//     Array.isArray(items)
+//      ) {
 
-    // DELETE OLD ITEMS
+//     // DELETE OLD ITEMS
 
-    await prisma.quotationItem.deleteMany({
-      where: {
-        quotationId: id
-      }
-    });
+//     await prisma.quotationItem.deleteMany({
+//       where: {
+//         quotationId: id
+//       }
+//      });
 
-    // CREATE NEW ITEMS
+//     // CREATE NEW ITEMS
 
+//     await prisma.quotationItem.createMany({
+
+//       data: items.map(
+//         (item: any) => ({
+
+//           quotationId: id,
+
+//           itemName:
+//             item.itemName || "",
+
+//           quantity:
+//             item.qty ||
+//             item.quantity ||
+//             "",
+
+//           make1:
+//             item.make ||
+//             item.make1 ||
+//             "",
+
+//           make2:
+//             item.make2 || "",
+
+//           specification:
+//             item.specification || "",
+
+//           specification1:
+//             item.specification1 || "",
+
+//           specification2:
+//             item.specification2 || "",
+
+//           specification3:
+//             item.specification3 || "",
+
+//           specification7:
+//             item.specification7 || "",
+
+//           specification8:
+//             item.specification8 || "",
+
+//           specification9:
+//             item.specification9 || ""
+
+//         }))
+//     });
+//   }
+
+//   return await prisma.quotation.findUnique({
+
+//     where: { id },
+
+//     include: {
+//       createdBy: true,
+//       items: true
+//     }
+
+//   });
+// };
+
+
+export const updateQuotationModel = async (id: string, data: any) => {
+  const { items, ...rest } = data;
+
+  // 1. Update the Main Table
+  await prisma.quotation.update({
+    where: { id },
+    data: {
+      companyName: data.customerName || data.companyName,
+      companyEmail: data.customerEmail || data.companyEmail,
+      companyPhone: data.customerPhone || data.companyPhone,
+      
+      fromCompanyName: data.fromCompanyName,
+      fromGstNumber: data.fromGstNumber,
+      
+      gstNumber: data.gstNumber,
+      consumerNumber: data.consumerNumber,
+      BillingNumber: data.BillingNumber,
+      CustomerNumber: data.CustomerNumber,
+      
+      customerType: data.customerType,
+      subsidyType: data.subsidyType,
+      onGrid: data.onGrid || data.serviceType,
+      phase: data.phase,
+      
+      systemCapacityKw: data.systemCapacityKw ? Number(data.systemCapacityKw) : undefined,
+      numberOfFlats: data.numberOfFlats ? Number(data.numberOfFlats) : undefined,
+      
+      systemCost: data.systemCost ? Number(data.systemCost) : undefined,
+      gstRate: data.gstRate ? Number(data.gstRate) : undefined,
+      gstAmount: data.gstAmount ? Number(data.gstAmount) : undefined,
+      totalAmount: data.totalAmount ? Number(data.totalAmount) : undefined,
+      subsidyAmount: data.subsidyAmount ? Number(data.subsidyAmount) : undefined,
+      netPayableAmount: data.netPayableAmount ? Number(data.netPayableAmount) : undefined,
+      
+      validityDays: data.validityDays ? Number(data.validityDays) : undefined,
+      status: data.status,
+
+      // Proforma/Payment fields
+      advancedEnabled: data.advancedEnabled,
+      additionalAmount: data.additionalAmount ? Number(data.additionalAmount) : undefined,
+      paidAmount: data.paidAmount ? Number(data.paidAmount) : undefined,
+      paidType: data.paymentType,
+    },
+  });
+
+  // 2. Refresh Items
+  if (items && Array.isArray(items)) {
+    // Delete existing
+    await prisma.quotationItem.deleteMany({ where: { quotationId: id } });
+    
+    // Create new
     await prisma.quotationItem.createMany({
+      data: items.map((item: any) => ({
+        quotationId: id,
+        itemName: item.itemName || "",
+          quantity: String(item.quantity || item.qty || ""),
 
-      data: items.map(
-        (item: any) => ({
+            // Database Column: make1
+            // Check both naming variants from frontend
+            make1: item.make1 || item.make || "",
 
-          quotationId: id,
-
-          itemName:
-            item.itemName || "",
-
-          quantity:
-            item.qty ||
-            item.quantity ||
-            "",
-
-          make1:
-            item.make ||
-            item.make1 ||
-            "",
-
-          make2:
-            item.make2 || "",
-
-          specification:
-            item.specification || "",
-
-          specification1:
-            item.specification1 || "",
-
-          specification2:
-            item.specification2 || "",
-
-          specification3:
-            item.specification3 || "",
-
-          specification7:
-            item.specification7 || "",
-
-          specification8:
-            item.specification8 || "",
-
-          specification9:
-            item.specification9 || ""
-
-        }))
+            make2: item.make2 || "",
+        specification: item.specification || "",
+        specification1: item.specification1 || "",
+        specification2: item.specification2 || "",
+        specification3: item.specification3 || "",
+        specification7: item.specification7 || "",
+        specification8: item.specification8 || "",
+        specification9: item.specification9 || "",
+      })),
     });
   }
 
   return await prisma.quotation.findUnique({
-
     where: { id },
-
-    include: {
-      createdBy: true,
-      items: true
-    }
-
+    include: { items: true },
   });
 };
 
