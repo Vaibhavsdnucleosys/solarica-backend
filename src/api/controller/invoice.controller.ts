@@ -81,7 +81,8 @@
         voucherId,
          officerName,
   officerContact,
-  systemCapacity
+  systemCapacity,
+   leadId
       } = req.body;
 
       console.log("DEBUG: Received Sales Person Data:", { salesPersonName, salesPersonPhone });
@@ -143,7 +144,8 @@
         voucherId,
          officerName,
   officerContact,
-  systemCapacity
+  systemCapacity,
+    leadId,
       );
 
       res.status(201).json({
@@ -499,7 +501,15 @@ export const convertToTaxInvoice =
       console.log("📩 API HIT - send email");
       console.log("Invoice ID:", id);
 
-      const result = await sendInvoiceEmailModel(id);
+      // const result = await sendInvoiceEmailModel(id);
+      console.log("📄 Generating PDF First...");
+
+await generateInvoicePDF(id);
+
+console.log("📩 Sending Email...");
+
+const result =
+  await sendInvoiceEmailModel(id);
 
       res.json({
         message: "Invoice sent successfully",

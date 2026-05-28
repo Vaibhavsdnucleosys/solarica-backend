@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 export const createLeadModel = async (
   name: string,
   company: string,
-  email: string,
+    email: string | undefined,
   phone: string,
   source: string,
   createdById: string,

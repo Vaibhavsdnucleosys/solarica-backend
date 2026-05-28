@@ -65,7 +65,8 @@ export const createInvoiceModel = async (
   voucherId?: string,
   officerName?: string,
 officerContact?: string,
-systemCapacity?: string
+systemCapacity?: string,
+leadId?: string
 ) => {
   console.log(`[createInvoiceModel] Starting creation for: ${invoiceNumber} by ${createdById}`);
   console.log(`[createInvoiceModel] Category: ${category}, Title: ${documentTitle}`);
@@ -78,7 +79,22 @@ systemCapacity?: string
     console.error(`[createInvoiceModel] User NOT found: ${createdById}`);
     throw new Error(`User with ID ${createdById} does not exist`);
   }
+let assignedToId = null;
 
+if (leadId) {
+
+  const lead =
+    await prisma.lead.findUnique({
+
+      where: {
+        id: String(leadId)
+      }
+
+    });
+
+  assignedToId =
+    lead?.assignedToId || null;
+}
   // Create invoice with items in a transaction
   console.log("[createInvoiceModel] Starting database transaction...");
   const result = await prisma.$transaction(async (tx: any) => {
@@ -123,6 +139,9 @@ systemCapacity?: string
          officerName,
   officerContact,
   systemCapacity,
+   leadId,
+
+  assignedToId,
         pdfStatus: "PENDING",
       },
       include: {
@@ -138,7 +157,22 @@ systemCapacity?: string
               }
             }
           }
-        }
+        },
+        lead: {
+
+  select: {
+
+    id: true,
+
+    name: true,
+
+    phone: true,
+
+    assignedToId: true,
+    status: true,
+  }
+
+},
       }
     });
 
@@ -235,6 +269,15 @@ export const getInvoiceByIdModel = async (id: string) => {
           }
         }
       },
+        // lead: true,
+         lead: {
+    select: {
+      id: true,
+    status: true,
+  company: true,
+        assignedToId: true
+    }
+  },
       items: {
         orderBy: { createdAt: 'asc' }
       }
@@ -256,9 +299,23 @@ export const getAllInvoicesModel = async (userId: string, userRole: any, filters
   const normalizedRole = (typeof userRole === 'object' ? userRole?.name : userRole)?.toLowerCase()?.trim();
   const where: any = {};
 
-  if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account') {
-    where.createdById = userId;
-  }
+  // if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account') {
+  //   where.createdById = userId;
+  // }
+  if (normalizedRole !== "admin") {
+
+  where.OR = [
+
+    {
+      createdById: userId
+    },
+
+    {
+      assignedToId: userId
+    }
+
+  ];
+}
 
   if (category) where.category = category;
   if (status) where.paymentStatus = status;
@@ -289,6 +346,17 @@ export const getAllInvoicesModel = async (userId: string, userRole: any, filters
           phone: true,
         },
       },
+      lead: {
+    select: {
+      id: true,
+    status: true,
+  company: true,
+        assignedToId: true
+    }},
+      paymentProofs: {
+        include: {
+          uploadedBy: { select: { id: true, name: true } }
+        }},
       _count: {
         select: {
           items: true
@@ -1320,7 +1388,15 @@ export const rejectInvoiceWithReasonModel = async (id: string, reason: string) =
           name: true,
           email: true
         }
-      }
+      },
+       lead: {
+    select: {
+      id: true,
+      status: true,
+      company: true,
+      assignedToId: true
+    }
+  }
     }
   });
 };

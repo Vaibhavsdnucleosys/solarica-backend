@@ -60,9 +60,11 @@ export const createQuotationModel = async (
   companyName: string,
   companyEmail: string,
   companyPhone: string,
+    leadId: string | undefined,
   systemCapacityKw: number,
   systemCost: number,
   createdById: string,
+    
   items: Array<{
     name: string;
     specification?: string;
@@ -76,7 +78,6 @@ export const createQuotationModel = async (
   BillingNumber?: string,
   CustomerNumber?: string,
   gstNumber?: string,
-
   // New Frontend Fields
   customerType?: string,
   subsidyType?: string,
@@ -93,9 +94,9 @@ export const createQuotationModel = async (
   validityDays?: number,
 ) => {
   // Validate basic inputs
-  if (!companyName || !companyEmail) {
-    throw new Error('Required fields are missing');
-  }
+  // if (!companyName || !companyEmail) {
+  //   throw new Error('Required fields are missing');
+  // }
 
   // Verify user exists
   const user = await prisma.user.findUnique({
@@ -104,6 +105,23 @@ export const createQuotationModel = async (
   if (!user) {
     throw new Error(`User with ID ${createdById} does not exist`);
   }
+
+  let assignedToId = null;
+
+if (leadId) {
+
+  const lead =
+    await prisma.lead.findUnique({
+
+      where: {
+        id: leadId
+      }
+
+    });
+
+  assignedToId =
+    lead?.assignedToId || null;
+}
   // Create quotation with items in a transaction
   const result = await prisma.$transaction(async (tx: any) => {
     // Create the quotation
@@ -132,7 +150,9 @@ export const createQuotationModel = async (
         CustomerNumber,
         gstNumber,
         validityDays,
-        status: "DRAFT"
+        status: "DRAFT",
+        leadId,
+        assignedToId,
       },
       include: {
         createdBy: {
@@ -149,6 +169,7 @@ export const createQuotationModel = async (
         }
       }
     });
+
     // Create quotation items
     if (items && items.length > 0) {
       // await tx.quotationItem.createMany({
@@ -275,8 +296,20 @@ export const getAllQuotationsModel = async (userId: string, userRole: any, filte
 
   // Enforce role-based visibility
   const normalizedRole = (typeof userRole === 'object' ? userRole?.name : userRole)?.toLowerCase()?.trim();
-  if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account') {
-    where.createdById = userId;
+  // if (normalizedRole !== 'admin' && normalizedRole !== 'operation' && normalizedRole !== 'operations' && normalizedRole !== 'accounting' && normalizedRole !== 'account') {
+    
+  if (normalizedRole !== 'admin') {
+  where.OR = [
+
+  {
+    createdById: userId
+  },
+
+    {
+      assignedToId: userId
+    }
+
+  ];
   }
 
   if (company) {
@@ -286,7 +319,7 @@ export const getAllQuotationsModel = async (userId: string, userRole: any, filte
     };
   }
 
-  return await prisma.quotation.findMany({
+  const quotations = await prisma.quotation.findMany({
     where,
     include: {
       createdBy: {
@@ -297,10 +330,30 @@ export const getAllQuotationsModel = async (userId: string, userRole: any, filte
           role: { select: { name: true } }
         }
       },
-      items: true
+      lead: {
+  select: {
+    id: true,
+    status: true,
+    company: true,
+    assignedToId: true
+  }
+},
+      items: true,
+       paymentProofs: {
+        include: {
+          uploadedBy: {
+            select: { id: true, name: true }
+          }
+        }
+      }
     },
     orderBy: { createdAt: 'desc' }
   });
+return quotations.map((q: any) => ({
+    ...q,
+    leadStatus: q.lead?.status || '',
+    leadId: q.lead?.id || null
+  }));
 };
 
 // Update quotation status
@@ -324,7 +377,11 @@ export const getQuotationByIdModel = async (id: string) => {
           role: { select: { name: true } }
         }
       },
-      items: true
+        paymentProofs: {
+        include: {
+          uploadedBy: { select: { id: true, name: true } }
+        }
+      }
     }
   });
 };

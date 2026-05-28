@@ -67,7 +67,7 @@ model Lead {
   id             String   @id @default(cuid())
   name           String
   company        String
-  email          String
+   email          String? 
   phone          String
   source         String
   status         String
@@ -80,6 +80,8 @@ model Lead {
   createdBy      User     @relation("LeadCreator", fields: [createdById], references: [id])
     assignedToId     String?
   assignedToName   String?
+  quotations     Quotation[]
+  invoices Invoice[]
 }
 
 model Quotation {
@@ -125,6 +127,11 @@ additionalAmount Float   @default(0)
   paymentProofs    PaymentProof[]
   createdBy        User            @relation("QuotationCreator", fields: [createdById], references: [id])
   items            QuotationItem[]
+
+    leadId           String?
+  assignedToId     String?
+
+  lead             Lead? @relation(fields: [leadId], references: [id])
 }
 
 model QuotationItem {
@@ -341,7 +348,10 @@ totalTaxAmount        Float?    @default(0)
 igst                  Float?    @default(0)
 pdfTaxFilePath String?
 
+ leadId       String?
+  assignedToId String?
 
+  lead Lead? @relation(fields: [leadId], references: [id])
 
 
 }
