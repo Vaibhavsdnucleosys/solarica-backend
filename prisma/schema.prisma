@@ -363,6 +363,7 @@ model InvoiceItem {
   hsnSac          String?
   quantity        Float
   unit            String?
+   watt            Float?   @default(0)
   rate            Float
   discount        Float    @default(0)
   amount          Float

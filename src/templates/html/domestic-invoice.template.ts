@@ -383,6 +383,7 @@
 
 
 
+import { getPumpTemplate } from './pump';
 import { getBase64Image } from './utils';
 
 export const buildDomesticInvoiceHTML = (data: any): string => {
@@ -615,59 +616,15 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
 
         <!-- PUMP DETAILS -->
 
-        ${data.category === 'PUMP' ? `
+      
 
-        <tr>
 
-            <td colspan="2">
+        ${data.category === 'PUMP'
+  ? data.pumpContent || ''
+  : ''
+}
 
-                <div class="pump-title">
-                    ${data.systemCapacity || 'SOLAR WATER PUMP SYSTEM'}
-                </div>
 
-                <div class="project-title">
-                    PROJECT DETAILS:
-                </div>
-
-                <table>
-
-                    <tr>
-                        <td class="bold" style="width:30%; background:#f1f1f1;">
-                            Officer In Charge
-                        </td>
-
-                        <td>
-                            ${data.officerName || '-'}
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td class="bold" style="background:#f1f1f1;">
-                            Contact
-                        </td>
-
-                        <td>
-                            ${data.officerContact || '-'}
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td class="bold" style="background:#f1f1f1;">
-                            System Capacity
-                        </td>
-
-                        <td>
-                            ${data.systemCapacity || '-'}
-                        </td>
-                    </tr>
-
-                </table>
-
-            </td>
-
-        </tr>
-
-        ` : ''}
 
         <!-- ITEM TABLE -->
 

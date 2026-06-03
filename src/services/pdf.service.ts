@@ -56,25 +56,45 @@ const browser = await puppeteer.launch({
         const page = await browser.newPage();
         
         // const html = templateType === 'SALES' ? buildSalesInvoiceHTML(invoiceData) : buildInvoiceHTML(invoiceData);
-const html =
-  templateType === 'SALES'
+// const html =
+//   templateType === 'SALES'
 
+//     ? buildSalesInvoiceHTML({
+//         ...invoiceData,
+//         documentTitle: 'DELIVERY CHALLAN'
+//       })
+
+//    :templateType === 'TAX'
+
+// ? buildTaxInvoiceHTML({
+//     ...invoiceData,
+//     documentTitle: 'TAX INVOICE',
+//     isTaxInvoice: true
+//   })
+
+//     : buildInvoiceHTML({
+//         ...invoiceData,
+//         documentTitle: 'ESTIMATE'
+//       });
+
+
+const html =
+  templateType === "SALES"
     ? buildSalesInvoiceHTML({
         ...invoiceData,
-        documentTitle: 'DELIVERY CHALLAN'
+        documentTitle: "DELIVERY CHALLAN",
       })
 
-   :templateType === 'TAX'
-
-? buildTaxInvoiceHTML({
-    ...invoiceData,
-    documentTitle: 'TAX INVOICE',
-    isTaxInvoice: true
-  })
+    : templateType === "TAX"
+    ? buildTaxInvoiceHTML({
+        ...invoiceData,
+        documentTitle: "TAX INVOICE",
+        isTaxInvoice: true,
+      })
 
     : buildInvoiceHTML({
         ...invoiceData,
-        documentTitle: 'ESTIMATE'
+        documentTitle: "ESTIMATE",
       });
         await page.setContent(html, { waitUntil: 'networkidle0' });
 

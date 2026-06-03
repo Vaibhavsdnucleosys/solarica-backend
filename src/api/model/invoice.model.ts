@@ -29,6 +29,7 @@ export const createInvoiceModel = async (
     hsnSac?: string;
     quantity: number;
     unit?: string;
+    watt?: number;
     rate: number;
     discount?: number;
     amount: number;
@@ -185,6 +186,7 @@ if (leadId) {
           hsnSac: item.hsnSac || null,
           quantity: item.quantity,
           unit: item.unit || null,
+           watt: item.watt || 0,
           rate: item.rate,
           discount: item.discount || 0,
           amount: item.amount
