@@ -130,6 +130,9 @@ additionalAmount Float   @default(0)
 
     leadId           String?
   assignedToId     String?
+  paidType         String?
+paidAmount       Float? @default(0)
+remainingAmount  Float? @default(0)
 
   lead             Lead? @relation(fields: [leadId], references: [id])
 }

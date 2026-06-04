@@ -533,7 +533,7 @@ export const updateQuotationModel = async (id: string, data: any) => {
       validityDays: data.validityDays ? Number(data.validityDays) : undefined,
       status: data.status,
 
-      // Proforma/Payment fields
+
       advancedEnabled: data.advancedEnabled,
       additionalAmount: data.additionalAmount ? Number(data.additionalAmount) : undefined,
       paidAmount: data.paidAmount ? Number(data.paidAmount) : undefined,
