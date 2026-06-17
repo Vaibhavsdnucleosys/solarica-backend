@@ -92,6 +92,8 @@ export const createQuotationModel = async (
   subsidyAmount?: number,
   netPayableAmount?: number,
   validityDays?: number,
+  customerAddress?: string,
+shippingAddress?: string,
 ) => {
   // Validate basic inputs
   // if (!companyName || !companyEmail) {
@@ -153,6 +155,9 @@ if (leadId) {
         status: "DRAFT",
         leadId,
         assignedToId,
+
+      customerAddress,
+      shippingAddress,
       },
       include: {
         createdBy: {
@@ -538,6 +543,11 @@ export const updateQuotationModel = async (id: string, data: any) => {
       additionalAmount: data.additionalAmount ? Number(data.additionalAmount) : undefined,
       paidAmount: data.paidAmount ? Number(data.paidAmount) : undefined,
       paidType: data.paymentType,
+      customerAddress:
+  data.customerAddress,
+
+shippingAddress:
+  data.shippingAddress,
     },
   });
 

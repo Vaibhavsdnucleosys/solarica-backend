@@ -610,7 +610,9 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
 
             </td>
 
-            <td></td>
+            <td>
+            
+            </td>
 
         </tr>
 

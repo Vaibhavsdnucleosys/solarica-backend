@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 export const createLeadModel = async (
   name: string,
   company: string,
+    address: string,
     email: string | undefined,
   phone: string,
   source: string,
@@ -19,6 +20,7 @@ return await prisma.lead.create({
   data: {
     name,
     company,
+      address,
     email,
     phone,
     source,

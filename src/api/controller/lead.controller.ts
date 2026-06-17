@@ -29,6 +29,7 @@
       const {
   name,
   company,
+    address,
   email,
   phone,
   source,
@@ -54,6 +55,7 @@
 const lead = await createLeadModel(
   name,
   company,
+  address,
   email,
   phone,
   source,

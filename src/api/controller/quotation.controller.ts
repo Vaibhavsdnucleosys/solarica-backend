@@ -95,7 +95,9 @@ export const createQuotation = async (req: Request, res: Response) => {
       subsidyAmount,
       netCost, // Legacy support
       netPayableAmount, // Correct field name from frontend
-      validityDays
+      validityDays,
+       customerAddress,
+  shippingAddress,
     } = req.body;
 
     console.log("[Create Quotation] Payload received:", {
@@ -129,7 +131,9 @@ export const createQuotation = async (req: Request, res: Response) => {
       totalAmount,
       subsidyAmount,
       netPayableAmount || netCost, // Pass as netPayableAmount
-      validityDays
+      validityDays,
+       customerAddress,
+  shippingAddress
     );
 
     //  Automatically generate the PDF using the FULL request body

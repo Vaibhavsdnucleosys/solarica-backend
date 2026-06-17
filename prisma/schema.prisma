@@ -67,6 +67,7 @@ model Lead {
   id             String   @id @default(cuid())
   name           String
   company        String
+   address        String? 
    email          String? 
   phone          String
   source         String
@@ -133,7 +134,8 @@ additionalAmount Float   @default(0)
   paidType         String?
 paidAmount       Float? @default(0)
 remainingAmount  Float? @default(0)
-
+  customerAddress  String?   // Billing Address
+  shippingAddress  String?   // Shipping Address
   lead             Lead? @relation(fields: [leadId], references: [id])
 }
 
