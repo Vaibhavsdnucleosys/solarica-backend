@@ -577,7 +577,7 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
     </td>
 
     <td>
-        ${data.salesPersonName || data.createdBy?.name || '-'}
+        ${data.salesPersonName || data.assignedTo?.name || '-'}
     </td>
 
 </tr>
@@ -589,7 +589,7 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
     </td>
 
     <td>
-        ${data.salesPersonPhone || data.createdBy?.phone || '-'}
+        ${data.salesPersonPhone || data.assignedTo?.phone || '-'}
     </td>
 
 </tr>
