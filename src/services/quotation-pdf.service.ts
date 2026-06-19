@@ -132,7 +132,8 @@
 
 
 
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { buildQuotationHTML } from '../templates/html/quotation.template';
 import { uploadPDFToSupabase } from '../config/supabase';
 import { logger } from '../config/logger.config';
@@ -140,16 +141,19 @@ import { logger } from '../config/logger.config';
 export const generateQuotationPDF = async (quotationData: any) => {
     logger.info(`[Quotation PDF] Starting Puppeteer generation for: ${quotationData.companyName}`);
 
-    const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: process.env.CHROME_PATH || undefined,
-        args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu",
-        ],
-    });
+   const browser = await puppeteer.launch({
+    executablePath: await chromium.executablePath(),
+
+    args: [
+        ...chromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+    ],
+
+    headless: true,
+});
 
     try {
         const page = await browser.newPage();
@@ -158,8 +162,11 @@ export const generateQuotationPDF = async (quotationData: any) => {
         const html = buildQuotationHTML(quotationData);
 
         // Set content and wait for it to load
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+await page.setContent(html, {
+   waitUntil:'domcontentloaded'
+});
 
+await page.waitForNetworkIdle();
         // Generate PDF Buffer
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -174,7 +181,8 @@ export const generateQuotationPDF = async (quotationData: any) => {
 
         // Upload to Supabase
         const qtnNumber = quotationData.id || 'temp-' + Date.now();
-        const fileName = `quotations/2025/QTN-${qtnNumber}.pdf`;
+        // const fileName = `quotations/2025/QTN-${qtnNumber}.pdf`;
+        const fileName = `2025/QTN-${qtnNumber}.pdf`;
 
         const pdfUrl = await uploadPDFToSupabase(
             Buffer.from(pdfBuffer), 
@@ -186,10 +194,28 @@ export const generateQuotationPDF = async (quotationData: any) => {
         logger.info(`[Quotation PDF] Uploaded successfully: ${pdfUrl}`);
         return pdfUrl;
 
-    } catch (error: any) {
-        logger.error(`[Quotation PDF] Error: ${error.message}`);
-        throw new Error(`Failed to generate Quotation PDF: ${error.message}`);
-    } finally {
+    } 
+   catch (error:any){
+
+ logger.error(
+   "[Quotation PDF ERROR]",
+   error
+ );
+
+ logger.error(
+   "[Quotation PDF MESSAGE]",
+   error.message
+ );
+
+ logger.error(
+   "[Quotation PDF STACK]",
+   error.stack
+ );
+
+ throw error;
+}
+   
+    finally {
         await browser.close();
     }
 };

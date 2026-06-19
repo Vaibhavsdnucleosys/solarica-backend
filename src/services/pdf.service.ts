@@ -1,10 +1,11 @@
-import puppeteer from 'puppeteer';
+
 import { buildInvoiceHTML, buildSalesInvoiceHTML } from '../templates/html/invoice.template';
 import { buildWorkOrderHTML } from '../templates/html/workorder.template';
 import { logger } from '../config/logger.config';
 import { amountToWords } from '../utils/accounting/helpers';
 import { buildTaxInvoiceHTML } from '../templates/html/taxInvoice.template';
-
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 /**
  * Service to generate Invoice PDFs using Puppeteer
  */
@@ -38,15 +39,31 @@ export const generateInvoicePDF = async (
 //   ]
 // });
 
+// const browser = await puppeteer.launch({
+//   headless: true,
+//   executablePath: process.env.CHROME_PATH || undefined,
+//   args: [
+//     "--no-sandbox",
+//     "--disable-setuid-sandbox",
+//     "--disable-dev-shm-usage",
+//     "--disable-gpu",
+//   ],
+// });
+
+
+
+
 const browser = await puppeteer.launch({
-  headless: true,
-  executablePath: process.env.CHROME_PATH || undefined,
+  executablePath: await chromium.executablePath(),
+
   args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
+    ...chromium.args,
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage'
   ],
+
+  headless: true
 });
 
 
@@ -96,7 +113,11 @@ const html =
         ...invoiceData,
         documentTitle: "ESTIMATE",
       });
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+       await page.setContent(html, {
+  waitUntil: 'domcontentloaded'
+});
+
+await page.waitForNetworkIdle();
 
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -125,16 +146,28 @@ const html =
 export const generateWorkOrderPDF = async (data: any): Promise<Buffer> => {
     logger.info(`[PDF Service] Starting Work Order PDF generation for Job ID: ${data.jobId}`);
 
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+const browser = await puppeteer.launch({
+  executablePath: await chromium.executablePath(),
+
+  args: [
+    ...chromium.args,
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage'
+  ],
+
+  headless: true
+});
 
     try {
         const page = await browser.newPage();
         const html = buildWorkOrderHTML(data);
 
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, {
+  waitUntil: 'domcontentloaded'
+});
+
+await page.waitForNetworkIdle();
 
         const pdfBuffer = await page.pdf({
             format: 'A4',
