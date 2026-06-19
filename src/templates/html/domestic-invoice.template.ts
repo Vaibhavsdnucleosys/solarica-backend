@@ -570,6 +570,29 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
                         </td>
                         <td></td>
                     </tr>
+                    <tr>
+
+    <td class="bold">
+        Sales Person
+    </td>
+
+    <td>
+        ${data.salesPersonName || data.createdBy?.name || '-'}
+    </td>
+
+</tr>
+
+<tr>
+
+    <td class="bold">
+        Contact
+    </td>
+
+    <td>
+        ${data.salesPersonPhone || data.createdBy?.phone || '-'}
+    </td>
+
+</tr>
 
                 </table>
 
