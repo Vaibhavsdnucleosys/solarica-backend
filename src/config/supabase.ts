@@ -4,15 +4,36 @@ import { createClient } from '@supabase/supabase-js';
 // export const supabase = createClient(
 //   process.env.SUPABASE_URL!,
 //   process.env.SUPABASE_ANON_KEY!
-// );
+// ); until this already comment 
+
+
+
+// const supabaseUrl = process.env.SUPABASE_URL;
+// const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+// if (!supabaseUrl || !supabaseKey) {
+//   throw new Error("Supabase environment variables missing");
+// }
+
+// export const supabase = createClient(supabaseUrl, supabaseKey);
+
+
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Supabase environment variables missing");
+  throw new Error(
+    "Supabase environment variables missing"
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseKey
+);
 
 // Helper for storage operations (can use the same client)
 export const supabaseStorage = supabase;
