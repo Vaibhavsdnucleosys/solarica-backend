@@ -67,17 +67,42 @@ export const uploadPDFToSupabase = uploadToSupabase;
 /**
  * Generate a temporary signed URL for a file
  */
-export const generateSignedURL = async (filePath: string, bucketName: string) => {
-  const { data, error } = await supabase.storage
-    .from(bucketName)
-    .createSignedUrl(filePath, 604800); // 7 days expiry
+// export const generateSignedURL = async (filePath: string, bucketName: string) => {
+//   const { data, error } = await supabase.storage
+//     .from(bucketName)
+//     .createSignedUrl(filePath, 604800); // 7 days expiry
 
-  if (error) {
-    throw new Error(`Failed to generate signed URL: ${error.message}`);
-  }
+//   if (error) {
+//     throw new Error(`Failed to generate signed URL: ${error.message}`);
+//   }
 
-  return data.signedUrl;
-};
+//   return data.signedUrl;
+// };
+
+export const generateSignedURL = async (
+ filePath: string,
+ bucketName: string
+) => {
+
+ console.log("Bucket:", bucketName);
+
+ console.log("FilePath:", filePath);
+
+ const { data, error } =
+ await supabase.storage
+ .from(bucketName)
+ .createSignedUrl(filePath, 604800);
+
+ if(error){
+   console.log("Supabase Error:", error);
+
+   throw new Error(
+     `Failed to generate signed URL: ${error.message}`
+   );
+ }
+
+ return data.signedUrl;
+}
 
 /**
  * Delete a file from a specific bucket
