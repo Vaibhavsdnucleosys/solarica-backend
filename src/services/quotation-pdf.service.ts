@@ -142,17 +142,21 @@ export const generateQuotationPDF = async (quotationData: any) => {
     logger.info(`[Quotation PDF] Starting Puppeteer generation for: ${quotationData.companyName}`);
 
    const browser = await puppeteer.launch({
-    executablePath: await chromium.executablePath(),
+  executablePath:
+    process.env.RENDER
+      ? await chromium.executablePath()
+      : process.env.CHROME_PATH,
 
-    args: [
-        ...chromium.args,
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-    ],
+  args: process.env.RENDER
+    ? chromium.args
+    : [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ],
 
-    headless: true,
+  headless: true,
 });
 
     try {

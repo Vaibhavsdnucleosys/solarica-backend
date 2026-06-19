@@ -147,16 +147,20 @@ export const generateWorkOrderPDF = async (data: any): Promise<Buffer> => {
     logger.info(`[PDF Service] Starting Work Order PDF generation for Job ID: ${data.jobId}`);
 
 const browser = await puppeteer.launch({
-  executablePath: await chromium.executablePath(),
+  executablePath:
+    process.env.RENDER
+      ? await chromium.executablePath()
+      : process.env.CHROME_PATH,
 
-  args: [
-    ...chromium.args,
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage'
-  ],
+  args: process.env.RENDER
+    ? chromium.args
+    : [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage'
+      ],
 
-  headless: true
+  headless: true,
 });
 
     try {
