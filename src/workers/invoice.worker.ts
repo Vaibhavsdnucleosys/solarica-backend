@@ -16,10 +16,36 @@ new Worker(
 
     console.log("🚀 Worker started:", invoiceId);
 
+    // const invoice = await prisma.invoice.findUnique({
+    //   where: { id: invoiceId },
+    //   include: { items: true },
+    // });
+
     const invoice = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      include: { items: true },
-    });
+  where: {
+    id: invoiceId
+  },
+
+  include: {
+
+    items: true,
+
+    assignedTo: {
+
+      select: {
+
+        id: true,
+
+        name: true,
+
+        phone: true
+
+      }
+
+    }
+
+  },
+});
 
     if (!invoice) throw new Error("Invoice not found");
 

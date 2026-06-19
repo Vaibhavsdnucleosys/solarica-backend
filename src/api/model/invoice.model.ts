@@ -271,6 +271,23 @@ export const getInvoiceByIdModel = async (id: string) => {
           }
         }
       },
+      
+      assignedTo:{
+
+    select:{
+
+      id:true,
+
+      name:true,
+
+      phone:true
+
+    }
+
+  },
+
+
+
         // lead: true,
          lead: {
     select: {
@@ -315,6 +332,7 @@ export const getAllInvoicesModel = async (userId: string, userRole: any, filters
     {
       assignedToId: userId
     }
+    
 
   ];
 }
@@ -348,6 +366,19 @@ export const getAllInvoicesModel = async (userId: string, userRole: any, filters
           phone: true,
         },
       },
+      assignedTo:{
+
+   select:{
+
+      id:true,
+
+      name:true,
+
+      phone:true
+
+   }
+
+},
       lead: {
     select: {
       id: true,
