@@ -29,6 +29,8 @@ model User {
   workOrders     WorkOrder[]      @relation("WorkOrderCreator")
   worker         Worker?
     company        String?   
+
+assignedInvoices Invoice[] @relation("InvoiceAssignee")
 }
 
 model Role {
@@ -358,6 +360,8 @@ pdfTaxFilePath String?
 
   lead Lead? @relation(fields: [leadId], references: [id])
 
+
+assignedTo User? @relation("InvoiceAssignee", fields: [assignedToId], references: [id])
 
 }
 
