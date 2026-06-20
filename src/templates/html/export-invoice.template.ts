@@ -243,7 +243,7 @@ import { getBase64Image } from './utils';
 
 export const buildExportInvoiceHTML = (data: any): string => {
     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
-    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');  // optional – keep if you want QR on export
+    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
     const stampBase64 = getBase64Image('src/assets/invoice_export_stamp.png');
     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
 
@@ -268,7 +268,8 @@ export const buildExportInvoiceHTML = (data: any): string => {
             border-collapse: collapse;
         }
 
-        td, th {
+        td,
+        th {
             border: 1px solid #555;
             padding: 6px;
             vertical-align: top;
@@ -357,7 +358,7 @@ export const buildExportInvoiceHTML = (data: any): string => {
                         </td>
                         <td class="no-border">
                             <div class="company-name">
-                                ${data.companyName || 'SOLARICA ENERGY INDIA PVT LTD'}
+                                ${data.companyName || 'Solarica Systems Pvt Ltd'}
                             </div>
                             <div>
                                 AUDUMBAR NIVYA COMPLEX , OFFICE NO 203,NARHE,
@@ -400,11 +401,11 @@ export const buildExportInvoiceHTML = (data: any): string => {
                     </tr>
                     <tr>
                         <td class="bold">Sales Person</td>
-                        <td>${data.salesPersonName || data.createdBy?.name || '-'}</td>
+                        <td>${data.assignedTo?.name || '-'}</td>
                     </tr>
                     <tr>
                         <td class="bold">Contact</td>
-                        <td>${data.salesPersonPhone || data.createdBy?.phone || '-'}</td>
+                        <td>${data.assignedTo?.phone || '-'}</td>
                     </tr>
                 </table>
             </td>
@@ -535,13 +536,13 @@ export const buildExportInvoiceHTML = (data: any): string => {
                                 Bank IFSC code : ${data.ifscCode || 'KKBK0001801'}
                             </div>
                             <div style="margin-top:10px;">
-                                Account holder's name : ${data.companyName || 'SOLARICA ENERGY INDIA PRIVATE LIMITED'}
+                                Account holder's name : ${data.companyName || 'Solarica Systems Pvt Ltd'}
                             </div>
                         </td>
                     </tr>
                     <tr>
                         <td class="signature-box">
-                            <div>For, : ${data.companyName || ''}</div>
+                            <div>For, : ${data.companyName || 'Solarica Systems Pvt Ltd'}</div>
                             <div style="margin-top:10px;">
                                 <img src="${stampBase64}" width="120" />
                             </div>
@@ -553,6 +554,7 @@ export const buildExportInvoiceHTML = (data: any): string => {
         </tr>
 
     </table>
+
 </body>
 </html>
     `;
