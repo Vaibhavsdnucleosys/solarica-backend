@@ -238,262 +238,221 @@
 // };
 
 
+
 import { getBase64Image } from './utils';
 
-// export const buildDomesticInvoiceHTML = (data: any): string => {
-//     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
-//     const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
-//     const stampBase64 = getBase64Image('src/assets/invoice_domestic_stamp.png');
-
-//     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
-
-
-    export const buildExportInvoiceHTML = (data: any): string => {
+export const buildExportInvoiceHTML = (data: any): string => {
     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
-     const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
+    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');  // optional – keep if you want QR on export
     const stampBase64 = getBase64Image('src/assets/invoice_export_stamp.png');
     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
-    return `
 
+    return `
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${data.documentTitle || 'Estimate'} - Solarica Energy</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#8B8055",
-                        secondary: "#7CC142",
-                        accent: "#F49E25",
-                        "primary-blue": "#206BB8",
-                    },
-                    fontFamily: {
-                        display: ["Merriweather", "serif"],
-                        body: ["Roboto", "sans-serif"],
-                    },
-                },
-            },
-        };
-    </script>
+
     <style>
-        @media print {
-            @page { margin: 0; size: A4; }
-            body { margin: 0; }
-            table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-        }
         body {
-            background: #f0f2f5;
-            font-family: 'Roboto', sans-serif;
-            padding: 20px;
-            margin: 0;
-        }
-        .invoice-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-        .header-bg-left {
-            background: #DCE6F1;
-            border-bottom-right-radius: 80px;
-        }
-        .header-bg-right {
-            background: #8B8055;
-            border-bottom-left-radius: 120px;
-        }
-        .section-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            padding: 20px 24px;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #4B5563;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #E5E7EB;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
-        }
-        .items-table th {
-            background: #F9FAFB;
-            color: #374151;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.3px;
-            padding: 10px 12px;
-            border-bottom: 2px solid #E5E7EB;
-        }
-        .items-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #F3F4F6;
-        }
-        .items-table tr:last-child td {
-            border-bottom: none;
-        }
-        .terms-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .terms-list li {
-            padding: 4px 0;
-            padding-left: 20px;
-            position: relative;
+            font-family: Arial, sans-serif;
             font-size: 12px;
-            line-height: 1.6;
-            color: #374151;
+            margin: 0;
+            padding: 15px;
+            color: #000;
         }
-        .terms-list li::before {
-            content: "•";
-            position: absolute;
-            left: 4px;
-            color: #8B8055;
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            border: 1px solid #555;
+            padding: 6px;
+            vertical-align: top;
+        }
+
+        .no-border {
+            border: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .bold {
             font-weight: bold;
         }
-        .bank-detail-label {
-            font-weight: 600;
-            color: #4B5563;
-            width: 140px;
-            display: inline-block;
+
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
         }
-        @media (max-width: 640px) {
-            .header-bg-left, .header-bg-right {
-                border-radius: 0 !important;
-            }
-            .invoice-container {
-                border-radius: 0;
-            }
-            .section-card {
-                padding: 16px;
-            }
+
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-weight: bold;
+            background: #f1f1f1;
+        }
+
+        .green {
+            background: #8cc63f;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .amount-box {
+            height: 110px;
+        }
+
+        .terms {
+            line-height: 1.6;
+        }
+
+        .signature-box {
+            height: 120px;
+            text-align: center;
+        }
+
+        .pump-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .project-title {
+            font-size: 26px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 15px;
         }
     </style>
 </head>
+
 <body>
 
-<div class="invoice-container">
+    <table>
 
-    <!-- ========== HEADER ========== -->
-    <div class="relative w-full min-h-[220px] md:min-h-[260px] overflow-hidden">
-        <div class="absolute inset-0 flex flex-wrap">
-            <div class="w-1/2 h-full header-bg-left"></div>
-            <div class="w-1/2 h-full header-bg-right"></div>
-        </div>
-        <div class="relative z-10 flex flex-wrap items-center h-full px-6 md:px-10 py-4">
-            <!-- Left: Logo & Company Info -->
-            <div class="w-1/2 flex flex-col justify-center h-full">
-                <img src="${logoBase64}" alt="Solarica Logo" class="h-14 md:h-20 w-auto object-contain mix-blend-multiply mb-2" />
-                <div class="text-xs text-gray-700 font-serif font-bold leading-tight space-y-0.5">
-                    <div>CIN : U31909PN2020PTC192275</div>
-                    <div>GSTIN: 27AALCP2722L1Z4</div>
-                    <div>27 – Maharashtra. INDIA.</div>
-                </div>
-            </div>
-            <!-- Right: Company Name, Contact -->
-            <div class="w-1/2 flex flex-col justify-center text-white pl-4 md:pl-8">
-                <h1 class="text-xl md:text-2xl font-bold font-display tracking-wide mb-2">SOLARICA ENERGY INDIA PVT LTD</h1>
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm font-light">
-                    <div class="flex items-center gap-1">
-                        <span class="material-symbols-outlined text-base">call</span>
-                        <span>+91-9325389168</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="material-symbols-outlined text-base">mail</span>
-                        <span><a href="mailto:Business@solarica.in" class="hover:underline">Business@solarica.in</a></span>
-                    </div>
-                    <div class="flex items-start gap-1">
-                        <span class="material-symbols-outlined text-base">location_on</span>
-                        <span class="text-[10px] leading-snug">SN 7/2/1, FLAT NO 301/302 Mayur paradise B wing, Dhayari, Pune- 411041</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== MAIN BODY ========== -->
-    <div class="px-6 md:px-10 py-6 space-y-6">
-
-        <!-- Title -->
-        <div class="text-center">
-            <h2 class="text-2xl md:text-3xl font-bold text-[#0D2447] uppercase border-b-2 border-[#0D2447] inline-block pb-1 px-4">
-                ${data.documentTitle || 'Estimate'}
-            </h2>
-        </div>
-
-        <!-- Customer & Invoice Details (two columns) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Left: Customer -->
-            <div class="section-card">
-                <div class="section-title">Proposal For</div>
-                <div class="font-bold text-xl md:text-2xl uppercase">${data.customerName}</div>
-                <p class="text-sm text-gray-700 mt-1">${data.customerAddress || ''}</p>
-                ${data.customerContact ? `<p class="text-sm mt-1">Contact: ${data.customerContact}</p>` : ''}
-                ${data.customerGstinUin ? `<p class="text-sm mt-1">GSTIN: ${data.customerGstinUin}</p>` : ''}
-                <p class="text-sm mt-1">State: ${data.stateCode || '27-Maharashtra'}</p>
-            </div>
-
-            <!-- Right: Invoice Meta -->
-            <div class="section-card">
-                <div class="section-title">Invoice Details</div>
-                <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-                    <span class="font-bold text-gray-600">${data.documentTitle || 'Estimate'} No.</span>
-                    <span class="font-medium">${data.invoiceNumber}</span>
-
-                    <span class="font-bold text-gray-600">Date</span>
-                    <span class="font-medium">${new Date(data.invoiceDate).toLocaleDateString('en-GB')}</span>
-
-                    <span class="font-bold text-gray-600">Place of supply</span>
-                    <span class="font-medium">${data.placeOfSupply || '27-Maharashtra'}</span>
-
-                    <span class="font-bold text-gray-600">Sales Person</span>
-                    <span class="font-medium">${data.assignedTo?.name || '-'}</span>
-
-                    <span class="font-bold text-gray-600">Contact</span>
-                    <span class="font-medium">${data.assignedTo?.phone || '-'}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pump Details (if any) -->
-        ${data.category === 'PUMP' ? `
-        <div class="section-card">
-            ${data.pumpContent || ''}
-        </div>
-        ` : ''}
-
-        <!-- Items Table -->
-        <div class="section-card overflow-x-auto">
-            <div class="section-title">Items</div>
-            <table class="items-table w-full text-sm">
-                <thead>
+        <!-- HEADER -->
+        <tr>
+            <td style="width:50%;">
+                <table class="no-border">
                     <tr>
-                        <th class="text-center w-12">#</th>
-                        <th class="text-left">Item name</th>
-                        <th class="text-center w-24">HSN/SAC</th>
-                        <th class="text-center w-20">Qty</th>
-                        <th class="text-right w-28">Price/Unit</th>
-                        <th class="text-right w-32">GST</th>
-                        <th class="text-right w-32">Amount</th>
+                        <td class="no-border" style="width:100px;">
+                            <img src="${logoBase64}" width="90" />
+                        </td>
+                        <td class="no-border">
+                            <div class="company-name">
+                                ${data.companyName || 'SOLARICA ENERGY INDIA PVT LTD'}
+                            </div>
+                            <div>
+                                AUDUMBAR NIVYA COMPLEX , OFFICE NO 203,NARHE,
+                                SHREE CONTROL CHOWK, PUNE-411041
+                            </div>
+                            <div>
+                                Phone no.: 8956759167
+                            </div>
+                            <div>
+                                Email: Kiran@solarica.in
+                            </div>
+                            <div>
+                                GSTIN: 27AALCP2722L1Z4
+                            </div>
+                            <div>
+                                State: 27-Maharashtra
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
+                </table>
+            </td>
+
+            <td style="width:50%; padding:0;">
+                <table>
+                    <tr>
+                        <td class="bold">${data.documentTitle || 'Estimate'} No.</td>
+                        <td>${data.invoiceNumber}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Date</td>
+                        <td>${new Date(data.invoiceDate).toLocaleDateString('en-GB')}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Place of supply</td>
+                        <td>${data.placeOfSupply || '27-Maharashtra'}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Mode of Dispatch</td>
+                        <td>${data.modeOfDispatch || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Sales Person</td>
+                        <td>${data.salesPersonName || data.createdBy?.name || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="bold">Contact</td>
+                        <td>${data.salesPersonPhone || data.createdBy?.phone || '-'}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- CUSTOMER -->
+        <tr>
+            <td>
+                <div class="bold" style="margin-bottom:10px;">
+                    ${data.documentTitle || 'Estimate'} For
+                </div>
+                <div class="bold" style="font-size:16px;">
+                    ${data.customerName}
+                </div>
+                <div style="margin-top:10px;">
+                    ${data.customerAddress || ''}
+                </div>
+                <div style="margin-top:10px;">
+                    Contact No. : ${data.customerContact || ''}
+                </div>
+                ${data.customerGstinUin ? `
+                    <div style="margin-top:10px;">
+                        GSTIN : ${data.customerGstinUin}
+                    </div>
+                ` : ''}
+                <div style="margin-top:10px;">
+                    State: ${data.stateCode || '27-Maharashtra'}
+                </div>
+            </td>
+            <td></td>
+        </tr>
+
+        <!-- PUMP DETAILS (if any) -->
+        ${data.category === 'PUMP' ? data.pumpContent || '' : ''}
+
+        <!-- ITEM TABLE -->
+        <tr>
+            <td colspan="2" style="padding:0;">
+                <table>
+                    <tr class="green">
+                        <th>#</th>
+                        <th>Item name</th>
+                        <th>HSN/SAC</th>
+                        <th>Quantity</th>
+                        <th>Price/Unit</th>
+                        <th>GST</th>
+                        <th>Amount</th>
+                    </tr>
                     ${data.items.map((item: any, i: number) => {
                         const taxableAmount = item.rate * item.quantity;
                         const gstAmount = item.amount - taxableAmount;
@@ -502,99 +461,98 @@ import { getBase64Image } from './utils';
                             : '0';
                         return `
                         <tr>
-                            <td class="text-center">${i + 1}</td>
+                            <td>${i + 1}</td>
                             <td>${item.itemDescription}</td>
-                            <td class="text-center">${item.hsnSac || ''}</td>
-                            <td class="text-center">${item.quantity}</td>
+                            <td>${item.hsnSac || ''}</td>
+                            <td class="text-right">${item.quantity}</td>
                             <td class="text-right">${currencySymbol} ${item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                             <td class="text-right">${currencySymbol} ${gstAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${gstRate}%)</td>
-                            <td class="text-right font-bold">${currencySymbol} ${item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td class="text-right bold">${currencySymbol} ${item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                         </tr>
                         `;
                     }).join('')}
-                </tbody>
-            </table>
-        </div>
+                </table>
+            </td>
+        </tr>
 
-        <!-- Amount Summary -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Amount in Words -->
-            <div class="section-card flex flex-col justify-between">
-                <div class="section-title">Amount in Words</div>
-                <div class="text-lg font-bold text-gray-800 py-4">${data.amountInWords}</div>
-            </div>
-
-            <!-- Totals -->
-            <div class="section-card">
-                <div class="section-title">Amounts</div>
-                <div class="space-y-1 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Sub Total</span>
-                        <span class="font-medium">${currencySymbol} ${data.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </div>
+        <!-- AMOUNT SECTION -->
+        <tr>
+            <td style="width:50%;">
+                <div class="section-title">
+                    ${data.documentTitle || 'Estimate'} Amount In Words
+                </div>
+                <div class="amount-box bold" style="padding-top:15px;">
+                    ${data.amountInWords}
+                </div>
+            </td>
+            <td style="width:50%; padding:0;">
+                <table>
+                    <tr>
+                        <td colspan="2" class="section-title">Amounts:</td>
+                    </tr>
+                    <tr>
+                        <td>Sub Total</td>
+                        <td class="text-right">${currencySymbol} ${data.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
                     ${data.roundOff ? `
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Round off</span>
-                        <span class="font-medium">${currencySymbol} ${data.roundOff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </div>
+                    <tr>
+                        <td>Round off</td>
+                        <td class="text-right">${currencySymbol} ${data.roundOff.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
                     ` : ''}
-                    <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-                        <span>Total</span>
-                        <span>${currencySymbol} ${data.grandTotalPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                    </div>
+                    <tr class="bold">
+                        <td>Total</td>
+                        <td class="text-right">${currencySymbol} ${data.grandTotalPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <!-- TERMS & SIGNATURE -->
+        <tr>
+            <td>
+                <div class="bold">Terms and conditions:</div>
+                <div class="terms">
+                    1. Payment terms 90% advance with purchase order and 10% on readiness of material.<br>
+                    2. Goods once sold will not be taken back at any cost unless warranted.<br>
+                    3. Cancellation Charged 10% of Order Value.<br>
+                    4. Panels warranty 5 years from date of supply.<br>
+                    5. Transport Charges at actual.<br>
                 </div>
-            </div>
-        </div>
-
-        <!-- Terms, QR, Bank Details & Signature -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Left: Terms & QR -->
-            <div class="section-card">
-                <div class="section-title">Terms and conditions</div>
-                <ul class="terms-list">
-                    <li>Payment terms 90% advance with purchase order and 10% on readiness of material.</li>
-                    <li>Goods once sold will not be taken back at any cost unless warranted.</li>
-                    <li>Cancellation Charged 10% of Order Value.</li>
-                    <li>Panels warranty 5 years from date of supply.</li>
-                    <li>Transport Charges at actual.</li>
-                </ul>
-                <div class="mt-4">
-                    <img src="${qrBase64}" width="100" alt="QR Code" />
+                <div style="margin-top:20px;">
+                    <img src="${qrBase64}" width="100" />
                 </div>
-            </div>
+            </td>
+            <td style="padding:0;">
+                <table>
+                    <tr>
+                        <td>
+                            <div class="bold">Company's Bank details:</div>
+                            <div style="margin-top:15px;">
+                                Bank Account No. : ${data.accountNumber || '4745055271'}
+                            </div>
+                            <div style="margin-top:10px;">
+                                Bank IFSC code : ${data.ifscCode || 'KKBK0001801'}
+                            </div>
+                            <div style="margin-top:10px;">
+                                Account holder's name : ${data.companyName || 'SOLARICA ENERGY INDIA PRIVATE LIMITED'}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="signature-box">
+                            <div>For, : ${data.companyName || ''}</div>
+                            <div style="margin-top:10px;">
+                                <img src="${stampBase64}" width="120" />
+                            </div>
+                            <div class="bold">Authorized Signatory</div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
 
-            <!-- Right: Bank Details & Signature -->
-            <div class="section-card flex flex-col justify-between">
-                <div>
-                    <div class="section-title">Company's Bank details</div>
-                    <div class="space-y-1 text-sm">
-                        <div><span class="bank-detail-label">Bank Account No.</span> <span class="font-bold">${data.accountNumber || '4745055271'}</span></div>
-                        <div><span class="bank-detail-label">Bank IFSC code</span> <span class="font-bold">${data.ifscCode || 'KKBK0001801'}</span></div>
-                        <div><span class="bank-detail-label">Account holder's name</span> <span class="font-bold">${data.companyName || 'SOLARICA ENERGY INDIA PRIVATE LIMITED'}</span></div>
-                    </div>
-                </div>
-                <div class="mt-6 text-center border-t border-gray-100 pt-4">
-                    <p class="font-bold">For, ${data.companyName || 'SOLARICA ENERGY INDIA PVT LTD'}</p>
-                    <div class="my-2">
-                        <img src="${stampBase64}" width="120" alt="Stamp" class="mx-auto" />
-                    </div>
-                    <p class="font-bold">Authorized Signatory</p>
-                </div>
-            </div>
-        </div>
-
-    </div> <!-- end main body -->
-
-    <!-- ========== FOOTER (decorative) ========== -->
-    <div class="relative w-full h-16 mt-4">
-        <div class="absolute bottom-0 left-0 w-full h-full flex items-end">
-            <div class="bg-accent h-6 w-[45%]"></div>
-            <div class="bg-primary-blue h-16 w-full rounded-tl-[100px] -ml-16"></div>
-        </div>
-    </div>
-
-</div> <!-- end invoice-container -->
-
+    </table>
 </body>
 </html>
     `;
