@@ -549,27 +549,23 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
 
                     <tr>
                         <td class="bold">Estimate No.</td>
+                        <td>${data.invoiceNumber}</td>
                         <td class="bold">Date</td>
                     </tr>
 
                     <tr>
-                        <td class="bold">${data.invoiceNumber}</td>
-                        <td class="bold">
+                        <td class="bold">Date</td>
+                        <td>
                             ${new Date(data.invoiceDate).toLocaleDateString('en-GB')}
                         </td>
                     </tr>
 
                     <tr>
                         <td class="bold">Place of supply</td>
-                        <td></td>
+                        <td>  ${data.placeOfSupply || '27-Maharashtra'}</td>
                     </tr>
 
-                    <tr>
-                        <td class="bold">
-                            ${data.placeOfSupply || '27-Maharashtra'}
-                        </td>
-                        <td></td>
-                    </tr>
+                
                     <tr>
 
     <td class="bold">

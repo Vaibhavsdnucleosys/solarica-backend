@@ -117,13 +117,49 @@ export const buildQuotationHTML = (data: any): string => {
                 <div>Contact: ${data.companyPhone || 'N/A'}</div>
                 ${data.gstNumber ? `<div>GSTIN: ${data.gstNumber}</div>` : ''}
             </td>
-            <td style="padding: 0;">
-                <table class="no-border">
-                    <tr><td class="section-title">System Capacity</td><td>${data.systemCapacityKw} kW</td></tr>
-                    <tr><td class="section-title">On/Off Grid</td><td>${data.onGrid || 'On-Grid'}</td></tr>
-                    <tr><td class="section-title">Phase</td><td>${data.phase || 'Three Phase'}</td></tr>
-                </table>
+       
+
+            <td style="padding:0;">
+
+    <table class="no-border">
+
+        <tr>
+            <td class="section-title">System Capacity</td>
+
+            <td>${data.systemCapacityKw} kW</td>
+        </tr>
+
+        <tr>
+            <td class="section-title">On/Off Grid</td>
+
+            <td>${data.onGrid || 'On-Grid'}</td>
+        </tr>
+
+        <tr>
+            <td class="section-title">Phase</td>
+
+            <td>${data.phase || 'Three Phase'}</td>
+        </tr>
+
+        <tr>
+            <td class="section-title">Sales Person</td>
+
+            <td>
+                ${data.salesPersonName || data.assignedTo?.name || '-'}
             </td>
+        </tr>
+
+        <tr>
+            <td class="section-title">Mobile No.</td>
+
+            <td>
+                ${data.salesPersonPhone || data.assignedTo?.phone || '-'}
+            </td>
+        </tr>
+
+    </table>
+
+</td>
         </tr>
     </table>
 
