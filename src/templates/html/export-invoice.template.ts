@@ -238,14 +238,23 @@
 // };
 
 
-
 import { getBase64Image } from './utils';
 
 export const buildExportInvoiceHTML = (data: any): string => {
     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
-    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
+    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');   // optional – keep if you want QR
     const stampBase64 = getBase64Image('src/assets/invoice_export_stamp.png');
     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
+
+    // Static company details – exactly as you specified
+    const COMPANY = {
+        name: 'SOLARICA ENERGY INDIA PVT LTD',
+        cin: 'U31909PN2020PTC192275',
+        gstin: '27AALCP2722L1Z4',
+        state: '27 – Maharashtra. INDIA.',
+        phone: '+91-9325389168',
+        ho: 'SN 7/2/1, FLAT NO 301/302 Mayur paradise B wing, Dhayari, Pune- 411041'
+    };
 
     return `
 <!DOCTYPE html>
@@ -253,8 +262,8 @@ export const buildExportInvoiceHTML = (data: any): string => {
 
 <head>
     <meta charset="UTF-8" />
-
     <style>
+        /* ===== SAME STYLES AS DOMESTIC INVOICE ===== */
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
@@ -262,71 +271,56 @@ export const buildExportInvoiceHTML = (data: any): string => {
             padding: 15px;
             color: #000;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        td,
-        th {
+        td, th {
             border: 1px solid #555;
             padding: 6px;
             vertical-align: top;
         }
-
         .no-border {
             border: none !important;
         }
-
         .text-center {
             text-align: center;
         }
-
         .text-right {
             text-align: right;
         }
-
         .bold {
             font-weight: bold;
         }
-
         .title {
             font-size: 22px;
             font-weight: bold;
             text-align: center;
             padding: 10px;
         }
-
         .company-name {
             font-size: 18px;
             font-weight: bold;
         }
-
         .section-title {
             font-weight: bold;
             background: #f1f1f1;
         }
-
         .green {
             background: #8cc63f;
             color: #fff;
             font-weight: bold;
         }
-
         .amount-box {
             height: 110px;
         }
-
         .terms {
             line-height: 1.6;
         }
-
         .signature-box {
             height: 120px;
             text-align: center;
         }
-
         .pump-title {
             font-size: 24px;
             font-weight: bold;
@@ -334,7 +328,6 @@ export const buildExportInvoiceHTML = (data: any): string => {
             margin-top: 15px;
             margin-bottom: 15px;
         }
-
         .project-title {
             font-size: 26px;
             font-weight: bold;
@@ -348,7 +341,7 @@ export const buildExportInvoiceHTML = (data: any): string => {
 
     <table>
 
-        <!-- HEADER -->
+        <!-- ===== HEADER ===== -->
         <tr>
             <td style="width:50%;">
                 <table class="no-border">
@@ -357,25 +350,13 @@ export const buildExportInvoiceHTML = (data: any): string => {
                             <img src="${logoBase64}" width="90" />
                         </td>
                         <td class="no-border">
-                            <div class="company-name">
-                                ${data.companyName || 'Solarica Systems Pvt Ltd'}
-                            </div>
-                            <div>
-                                AUDUMBAR NIVYA COMPLEX , OFFICE NO 203,NARHE,
-                                SHREE CONTROL CHOWK, PUNE-411041
-                            </div>
-                            <div>
-                                Phone no.: 8956759167
-                            </div>
-                            <div>
-                                Email: Kiran@solarica.in
-                            </div>
-                            <div>
-                                GSTIN: 27AALCP2722L1Z4
-                            </div>
-                            <div>
-                                State: 27-Maharashtra
-                            </div>
+                            <div class="company-name">${COMPANY.name}</div>
+                            <div>${COMPANY.ho}</div>
+                            <div>Phone no.: ${COMPANY.phone}</div>
+                            <div>Email: Kiran@solarica.in</div>
+                            <div>CIN : ${COMPANY.cin}</div>
+                            <div>GSTIN: ${COMPANY.gstin}</div>
+                            <div>${COMPANY.state}</div>
                         </td>
                     </tr>
                 </table>
@@ -401,47 +382,35 @@ export const buildExportInvoiceHTML = (data: any): string => {
                     </tr>
                     <tr>
                         <td class="bold">Sales Person</td>
-                        <td>${data.assignedTo?.name || '-'}</td>
+                        <td>${data.salesPersonName || data.createdBy?.name || '-'}</td>
                     </tr>
                     <tr>
                         <td class="bold">Contact</td>
-                        <td>${data.assignedTo?.phone || '-'}</td>
+                        <td>${data.salesPersonPhone || data.createdBy?.phone || '-'}</td>
                     </tr>
                 </table>
             </td>
         </tr>
 
-        <!-- CUSTOMER -->
+        <!-- ===== CUSTOMER ===== -->
         <tr>
             <td>
                 <div class="bold" style="margin-bottom:10px;">
                     ${data.documentTitle || 'Estimate'} For
                 </div>
-                <div class="bold" style="font-size:16px;">
-                    ${data.customerName}
-                </div>
-                <div style="margin-top:10px;">
-                    ${data.customerAddress || ''}
-                </div>
-                <div style="margin-top:10px;">
-                    Contact No. : ${data.customerContact || ''}
-                </div>
-                ${data.customerGstinUin ? `
-                    <div style="margin-top:10px;">
-                        GSTIN : ${data.customerGstinUin}
-                    </div>
-                ` : ''}
-                <div style="margin-top:10px;">
-                    State: ${data.stateCode || '27-Maharashtra'}
-                </div>
+                <div class="bold" style="font-size:16px;">${data.customerName}</div>
+                <div style="margin-top:10px;">${data.customerAddress || ''}</div>
+                <div style="margin-top:10px;">Contact No. : ${data.customerContact || ''}</div>
+                ${data.customerGstinUin ? `<div style="margin-top:10px;">GSTIN : ${data.customerGstinUin}</div>` : ''}
+                <div style="margin-top:10px;">State: ${data.stateCode || '27-Maharashtra'}</div>
             </td>
             <td></td>
         </tr>
 
-        <!-- PUMP DETAILS (if any) -->
+        <!-- ===== PUMP DETAILS (if any) ===== -->
         ${data.category === 'PUMP' ? data.pumpContent || '' : ''}
 
-        <!-- ITEM TABLE -->
+        <!-- ===== ITEM TABLE ===== -->
         <tr>
             <td colspan="2" style="padding:0;">
                 <table>
@@ -457,9 +426,7 @@ export const buildExportInvoiceHTML = (data: any): string => {
                     ${data.items.map((item: any, i: number) => {
                         const taxableAmount = item.rate * item.quantity;
                         const gstAmount = item.amount - taxableAmount;
-                        const gstRate = taxableAmount > 0
-                            ? ((gstAmount / taxableAmount) * 100).toFixed(1)
-                            : '0';
+                        const gstRate = taxableAmount > 0 ? ((gstAmount / taxableAmount) * 100).toFixed(1) : '0';
                         return `
                         <tr>
                             <td>${i + 1}</td>
@@ -476,15 +443,11 @@ export const buildExportInvoiceHTML = (data: any): string => {
             </td>
         </tr>
 
-        <!-- AMOUNT SECTION -->
+        <!-- ===== AMOUNT SECTION ===== -->
         <tr>
             <td style="width:50%;">
-                <div class="section-title">
-                    ${data.documentTitle || 'Estimate'} Amount In Words
-                </div>
-                <div class="amount-box bold" style="padding-top:15px;">
-                    ${data.amountInWords}
-                </div>
+                <div class="section-title">${data.documentTitle || 'Estimate'} Amount In Words</div>
+                <div class="amount-box bold" style="padding-top:15px;">${data.amountInWords}</div>
             </td>
             <td style="width:50%; padding:0;">
                 <table>
@@ -509,7 +472,7 @@ export const buildExportInvoiceHTML = (data: any): string => {
             </td>
         </tr>
 
-        <!-- TERMS & SIGNATURE -->
+        <!-- ===== TERMS & SIGNATURE ===== -->
         <tr>
             <td>
                 <div class="bold">Terms and conditions:</div>
@@ -529,20 +492,16 @@ export const buildExportInvoiceHTML = (data: any): string => {
                     <tr>
                         <td>
                             <div class="bold">Company's Bank details:</div>
-                            <div style="margin-top:15px;">
-                                Bank Account No. : ${data.accountNumber || '4745055271'}
-                            </div>
-                            <div style="margin-top:10px;">
-                                Bank IFSC code : ${data.ifscCode || 'KKBK0001801'}
-                            </div>
-                            <div style="margin-top:10px;">
-                                Account holder's name : ${data.companyName || 'Solarica Systems Pvt Ltd'}
-                            </div>
+                            <div style="margin-top:15px;">Bank Account No. : ${data.accountNumber || '4745055271'}</div>
+                            <div style="margin-top:10px;">Bank IFSC code : ${data.ifscCode || 'KKBK0001801'}</div>
+                            <div style="margin-top:10px;">Account holder's name : ${COMPANY.name}</div>
+                            <div style="margin-top:10px;">Bank Name : ${data.bankName || 'KOTAK MAHINDRA BANK LTD'}</div>
+                            <div style="margin-top:10px;">SWIFT CODE : ${data.swiftCode || 'KKBKINBBXXX'}</div>
                         </td>
                     </tr>
                     <tr>
                         <td class="signature-box">
-                            <div>For, : ${data.companyName || 'Solarica Systems Pvt Ltd'}</div>
+                            <div>For, : ${COMPANY.name}</div>
                             <div style="margin-top:10px;">
                                 <img src="${stampBase64}" width="120" />
                             </div>
