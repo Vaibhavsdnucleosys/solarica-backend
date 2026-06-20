@@ -240,10 +240,6 @@
 
 import { getBase64Image } from './utils';
 
-/**
- * HTML Builder for Domestic Invoices – redesigned with modern, clean UI
- * All functionality, field names, and data bindings remain unchanged.
- */
 export const buildDomesticInvoiceHTML = (data: any): string => {
     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
     const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
@@ -271,18 +267,11 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
                         secondary: "#7CC142",
                         accent: "#F49E25",
                         "primary-blue": "#206BB8",
-                        "background-light": "#FFFFFF",
-                        "background-dark": "#1a1a1a",
-                        "surface-light": "#F3F4F6",
-                        "surface-dark": "#2d2d2d",
-                        "text-light": "#1F2937",
-                        "text-dark": "#E5E7EB",
                     },
                     fontFamily: {
                         display: ["Merriweather", "serif"],
                         body: ["Roboto", "sans-serif"],
                     },
-                    borderRadius: { DEFAULT: "4px" },
                 },
             },
         };
@@ -350,12 +339,6 @@ export const buildDomesticInvoiceHTML = (data: any): string => {
         }
         .items-table tr:last-child td {
             border-bottom: none;
-        }
-        .amount-total {
-            background: #F9FAFB;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-weight: 700;
         }
         .terms-list {
             list-style: none;
