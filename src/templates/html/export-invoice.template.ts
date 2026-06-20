@@ -240,14 +240,21 @@
 
 import { getBase64Image } from './utils';
 
-export const buildDomesticInvoiceHTML = (data: any): string => {
+// export const buildDomesticInvoiceHTML = (data: any): string => {
+//     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
+//     const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
+//     const stampBase64 = getBase64Image('src/assets/invoice_domestic_stamp.png');
+
+//     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
+
+
+    export const buildExportInvoiceHTML = (data: any): string => {
     const logoBase64 = getBase64Image('src/assets/solarics_logo.webp');
-    const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
-    const stampBase64 = getBase64Image('src/assets/invoice_domestic_stamp.png');
-
+     const qrBase64 = getBase64Image('src/assets/invoice_domestic_qr.png');
+    const stampBase64 = getBase64Image('src/assets/invoice_export_stamp.png');
     const currencySymbol = data.currency === 'USD' ? '$' : '₹';
-
     return `
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
