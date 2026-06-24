@@ -2,12 +2,33 @@ import nodemailer from 'nodemailer';
 import { downloadFileFromSupabase } from '../config/supabase';
 
 // Shared email transporter instance
-export const emailTransporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
+// export const emailTransporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS
+//   }
+// });
+
+export const emailTransporter =
+nodemailer.createTransport({
+
+ service:'gmail',
+
+ auth:{
+
+  user:process.env.EMAIL_USER,
+
+  pass:process.env.EMAIL_PASS
+
+ },
+
+ connectionTimeout:60000,
+
+ greetingTimeout:60000,
+
+ socketTimeout:60000
+
 });
 
 /**
@@ -260,196 +281,458 @@ export const sendQuotationEmail = async (
 //   }
 // };
 
+// export const sendInvoiceEmail = async (
+//   invoice: any,
+//   pdfURL: string = ''
+// ) => {
+//     console.log(
+//     "Customer Email:",
+//     invoice.customerEmail
+//   );
+//   const invoiceNumber =
+//     invoice.invoiceNumber ||
+//     invoice.id?.slice(-8).toUpperCase() ||
+//     'NEW';
+
+//   const attachments: any[] = [];
+
+//   try {
+//     console.log("📎 Preparing attachment...");
+
+//     // if (invoice.pdfFilePath) {
+//     //   const fileData = await downloadFileFromSupabase(
+//     //     invoice.pdfFilePath,
+//     //     'invoices'
+//     //   );
+
+//     //   const buffer = Buffer.from(await fileData.arrayBuffer());
+
+//     //   attachments.push({
+//     //     filename: `invoice-${invoiceNumber}.pdf`,
+//     //     content: buffer,
+//     //     contentType: 'application/pdf'
+//     //   });
+
+//     if (invoice.pdfFilePath) {
+
+//  console.log(
+//    "PDF PATH",
+//    invoice.pdfFilePath
+//  );
+
+//  const fileData =
+//   await downloadFileFromSupabase(
+//    invoice.pdfFilePath,
+//    'invoices'
+//  );
+
+//  console.log(
+//    "FILE DATA",
+//    fileData
+//  );
+
+//  const buffer =
+//   Buffer.from(
+//     await fileData.arrayBuffer()
+//   );
+
+//  attachments.push({
+
+//   filename:
+//    `invoice-${invoiceNumber}.pdf`,
+
+//   content:buffer,
+
+//   contentType:
+//    'application/pdf'
+
+//  });
+
+//      console.log("✅ Attachment ready");
+//     }
+
+//   else {
+//       console.log("⚠️ No PDF path found, sending without attachment");
+//     }
+//   } catch (error) {
+//     console.error("❌ Error attaching PDF:", error);
+//   }
+
+//   const currencySymbol = invoice.currency === 'USD' ? '$' : '₹';
+//   const isEstimate = invoice.category !== 'TAX_INVOICE';
+
+//   const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+
+//   const acceptUrl = `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=accepted`;
+//   const rejectUrl = `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=rejected`;
+
+//   const subjectPrefix = isEstimate ? 'Proforma Estimate' : 'Tax Invoice';
+
+//   const emailHtml = `
+//     <h2>${subjectPrefix}</h2>
+//     <p>Dear ${invoice.customerName},</p>
+//     <p>Please find your ${isEstimate ? 'estimate' : 'invoice'} attached.</p>
+//     <p><b>Amount:</b> ${currencySymbol}${invoice.grandTotalPayable}</p>
+//     <br/>
+//     <a href="${pdfURL}">Download PDF</a>
+//     <br/><br/>
+//     ${
+//       isEstimate
+//         ? `
+//       <a href="${acceptUrl}">Accept</a> |
+//       <a href="${rejectUrl}">Reject</a>
+//     `
+//         : ''
+//     }
+//   `;
+
+// //   try {
+// //     console.log("🚀 Email Service Start");
+
+// //     // 🔥 CHECK transporter
+// //     await emailTransporter.verify();
+// //     console.log("✅ Transporter verified");
+
+// //     console.log("📧 Sending email to:", invoice.customerEmail);
+// //     console.log("📎 Attachments count:", attachments.length);
+
+// //     const mailOptions = {
+// //       from: `"Solarica Energy" <${process.env.EMAIL_USER}>`,
+// //       to: invoice.customerEmail,
+// //       subject: `${subjectPrefix} #${invoiceNumber} - Solarica Energy`,
+// //       html: emailHtml,
+// //       attachments: attachments.length > 0 ? attachments : undefined
+// //     };
+
+// //     const info = await emailTransporter.sendMail(mailOptions);
+
+// //     console.log("✅ Email sent successfully:", info.messageId);
+
+// //     return {
+// //       success: true,
+// //       messageId: info.messageId
+// //     };
+// //   } 
+  
+// //   catch (error: any) {
+// //   console.error("❌ REAL EMAIL ERROR:", error); // 👈 IMPORTANT
+
+// //   // 👇 RETURN REAL ERROR MESSAGE
+// //   throw new Error(error.message || "Email sending failed");
+// // }
+// //   // catch (error) {
+// //   //   console.error("❌ EMAIL SERVICE ERROR:", error);
+// //   //   throw new Error("Failed to send invoice email");
+// //   // }
+// // };
+
+
+// try {
+
+//  console.log(
+//   "🚀 Email Service Start"
+//  );
+
+//  console.log(
+//   "EMAIL USER:",
+//   process.env.EMAIL_USER
+//  );
+
+//  console.log(
+//   "CUSTOMER EMAIL:",
+//   invoice.customerEmail
+//  );
+
+//  console.log(
+//   "PDF PATH:",
+//   invoice.pdfFilePath
+//  );
+
+//  console.log(
+//   "PDF URL:",
+//   pdfURL
+//  );
+
+//  await emailTransporter.verify();
+
+//  console.log(
+//   "Transport OK"
+//  );
+
+// }
+// catch(error){
+
+//  console.log(
+//   "Transport Error"
+//  );
+
+//  console.log(error);
+
+//  throw error;
+// }
+// }
+
+
 export const sendInvoiceEmail = async (
   invoice: any,
   pdfURL: string = ''
 ) => {
-    console.log(
-    "Customer Email:",
-    invoice.customerEmail
-  );
+
   const invoiceNumber =
     invoice.invoiceNumber ||
     invoice.id?.slice(-8).toUpperCase() ||
     'NEW';
 
+  const currencySymbol =
+    invoice.currency === 'USD'
+      ? '$'
+      : '₹';
+
+  const isEstimate =
+    invoice.category !== 'TAX_INVOICE';
+
+  const subjectPrefix =
+    isEstimate
+      ? 'Proforma Estimate'
+      : 'Tax Invoice';
+
+  const baseUrl =
+    process.env.BACKEND_URL ||
+    'https://solarica-backend-02qq.onrender.com';
+
+  const acceptUrl =
+    `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=accepted`;
+
+  const rejectUrl =
+    `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=rejected`;
+
+  console.log(
+    '📧 Customer Email:',
+    invoice.customerEmail
+  );
+
+  console.log(
+    '📄 PDF Path:',
+    invoice.pdfFilePath
+  );
+
   const attachments: any[] = [];
 
   try {
-    console.log("📎 Preparing attachment...");
 
-    // if (invoice.pdfFilePath) {
-    //   const fileData = await downloadFileFromSupabase(
-    //     invoice.pdfFilePath,
-    //     'invoices'
-    //   );
-
-    //   const buffer = Buffer.from(await fileData.arrayBuffer());
-
-    //   attachments.push({
-    //     filename: `invoice-${invoiceNumber}.pdf`,
-    //     content: buffer,
-    //     contentType: 'application/pdf'
-    //   });
+    // Attach PDF
 
     if (invoice.pdfFilePath) {
 
- console.log(
-   "PDF PATH",
-   invoice.pdfFilePath
- );
+      console.log(
+        '📎 Downloading PDF'
+      );
 
- const fileData =
-  await downloadFileFromSupabase(
-   invoice.pdfFilePath,
-   'invoices'
- );
+      const fileData =
+        await downloadFileFromSupabase(
+          invoice.pdfFilePath,
+          'invoices'
+        );
 
- console.log(
-   "FILE DATA",
-   fileData
- );
+      const buffer =
+        Buffer.from(
+          await fileData.arrayBuffer()
+        );
 
- const buffer =
-  Buffer.from(
-    await fileData.arrayBuffer()
-  );
+      attachments.push({
 
- attachments.push({
+        filename:
+          `invoice-${invoiceNumber}.pdf`,
 
-  filename:
-   `invoice-${invoiceNumber}.pdf`,
+        content: buffer,
 
-  content:buffer,
+        contentType:
+          'application/pdf'
 
-  contentType:
-   'application/pdf'
+      });
 
- });
+      console.log(
+        '✅ Attachment ready'
+      );
 
-     console.log("✅ Attachment ready");
     }
 
-  else {
-      console.log("⚠️ No PDF path found, sending without attachment");
-    }
-  } catch (error) {
-    console.error("❌ Error attaching PDF:", error);
   }
 
-  const currencySymbol = invoice.currency === 'USD' ? '$' : '₹';
-  const isEstimate = invoice.category !== 'TAX_INVOICE';
+  catch (error) {
 
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    console.log(
+      '❌ PDF attachment error'
+    );
 
-  const acceptUrl = `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=accepted`;
-  const rejectUrl = `${baseUrl}/api/v1/invoices/respond/${invoice.id}?action=rejected`;
+    console.log(error);
 
-  const subjectPrefix = isEstimate ? 'Proforma Estimate' : 'Tax Invoice';
+  }
+
 
   const emailHtml = `
+
+  <div style="font-family:Arial;padding:20px">
+
     <h2>${subjectPrefix}</h2>
-    <p>Dear ${invoice.customerName},</p>
-    <p>Please find your ${isEstimate ? 'estimate' : 'invoice'} attached.</p>
-    <p><b>Amount:</b> ${currencySymbol}${invoice.grandTotalPayable}</p>
-    <br/>
-    <a href="${pdfURL}">Download PDF</a>
-    <br/><br/>
-    ${
-      isEstimate
-        ? `
-      <a href="${acceptUrl}">Accept</a> |
-      <a href="${rejectUrl}">Reject</a>
-    `
-        : ''
+
+    <p>
+
+      Dear
+      <b>${invoice.customerName}</b>
+
+    </p>
+
+    <p>
+
+      Please find your
+      ${isEstimate ? 'Estimate' : 'Invoice'}
+      attached.
+
+    </p>
+
+    <p>
+
+      Amount:
+
+      <b>
+
+      ${currencySymbol}
+      ${invoice.grandTotalPayable?.toLocaleString('en-IN')}
+
+      </b>
+
+    </p>
+
+    <br>
+
+    <a href="${pdfURL}">
+
+      Download PDF
+
+    </a>
+
+    <br><br>
+
+    ${isEstimate ?
+
+      `
+
+      <a href="${acceptUrl}">
+
+        Accept
+
+      </a>
+
+      &nbsp; | &nbsp;
+
+      <a href="${rejectUrl}">
+
+        Reject
+
+      </a>
+
+      `
+
+      : ''
+
     }
+
+  </div>
+
   `;
 
-//   try {
-//     console.log("🚀 Email Service Start");
-
-//     // 🔥 CHECK transporter
-//     await emailTransporter.verify();
-//     console.log("✅ Transporter verified");
-
-//     console.log("📧 Sending email to:", invoice.customerEmail);
-//     console.log("📎 Attachments count:", attachments.length);
-
-//     const mailOptions = {
-//       from: `"Solarica Energy" <${process.env.EMAIL_USER}>`,
-//       to: invoice.customerEmail,
-//       subject: `${subjectPrefix} #${invoiceNumber} - Solarica Energy`,
-//       html: emailHtml,
-//       attachments: attachments.length > 0 ? attachments : undefined
-//     };
-
-//     const info = await emailTransporter.sendMail(mailOptions);
-
-//     console.log("✅ Email sent successfully:", info.messageId);
-
-//     return {
-//       success: true,
-//       messageId: info.messageId
-//     };
-//   } 
-  
-//   catch (error: any) {
-//   console.error("❌ REAL EMAIL ERROR:", error); // 👈 IMPORTANT
-
-//   // 👇 RETURN REAL ERROR MESSAGE
-//   throw new Error(error.message || "Email sending failed");
-// }
-//   // catch (error) {
-//   //   console.error("❌ EMAIL SERVICE ERROR:", error);
-//   //   throw new Error("Failed to send invoice email");
-//   // }
-// };
 
 
-try {
+  try {
 
- console.log(
-  "🚀 Email Service Start"
- );
+    console.log(
+      '🚀 Verifying transporter'
+    );
 
- console.log(
-  "EMAIL USER:",
-  process.env.EMAIL_USER
- );
 
- console.log(
-  "CUSTOMER EMAIL:",
-  invoice.customerEmail
- );
+    if(!invoice.customerEmail){
 
- console.log(
-  "PDF PATH:",
-  invoice.pdfFilePath
- );
-
- console.log(
-  "PDF URL:",
-  pdfURL
- );
-
- await emailTransporter.verify();
-
- console.log(
-  "Transport OK"
+ throw new Error(
+  'Customer email is missing'
  );
 
 }
-catch(error){
+    await emailTransporter.verify();
 
- console.log(
-  "Transport Error"
- );
+    console.log(
+      '✅ Transport verified'
+    );
 
- console.log(error);
 
- throw error;
-}
-}
+    const mailOptions = {
+
+      from:
+      `"Solarica Energy" <${process.env.EMAIL_USER}>`,
+
+      to:
+      invoice.customerEmail,
+
+      subject:
+      `${subjectPrefix} #${invoiceNumber} - Solarica Energy`,
+
+      html:
+      emailHtml,
+
+      attachments:
+      attachments.length > 0
+      ? attachments
+      : undefined
+
+    };
+
+
+    console.log(
+      '📤 Sending email...'
+    );
+
+
+    const info =
+      await emailTransporter.sendMail(
+        mailOptions
+      );
+
+
+    console.log(
+      '✅ Email Sent'
+    );
+
+    console.log(
+      info.messageId
+    );
+
+
+    return {
+
+      success:true,
+
+      messageId:
+      info.messageId
+
+    };
+
+  }
+
+  catch(error:any){
+
+    console.log(
+      '❌ EMAIL ERROR'
+    );
+
+    console.log(error);
+
+    throw new Error(
+      error.message
+    );
+
+  }
+
+};
 
 
 /**
