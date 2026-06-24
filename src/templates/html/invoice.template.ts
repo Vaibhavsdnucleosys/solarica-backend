@@ -29,6 +29,9 @@ export const buildInvoiceHTML = (data: any): string => {
   if (data.category === 'EXPORT') {
     return buildExportInvoiceHTML(data);
   }
+    if (data.category === 'TAX_INVOICE') {
+    return buildDomesticInvoiceHTML(data);
+  }
 
   return buildDomesticInvoiceHTML({
     ...data,

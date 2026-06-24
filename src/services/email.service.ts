@@ -264,6 +264,10 @@ export const sendInvoiceEmail = async (
   invoice: any,
   pdfURL: string = ''
 ) => {
+    console.log(
+    "Customer Email:",
+    invoice.customerEmail
+  );
   const invoiceNumber =
     invoice.invoiceNumber ||
     invoice.id?.slice(-8).toUpperCase() ||
@@ -274,22 +278,59 @@ export const sendInvoiceEmail = async (
   try {
     console.log("📎 Preparing attachment...");
 
+    // if (invoice.pdfFilePath) {
+    //   const fileData = await downloadFileFromSupabase(
+    //     invoice.pdfFilePath,
+    //     'invoices'
+    //   );
+
+    //   const buffer = Buffer.from(await fileData.arrayBuffer());
+
+    //   attachments.push({
+    //     filename: `invoice-${invoiceNumber}.pdf`,
+    //     content: buffer,
+    //     contentType: 'application/pdf'
+    //   });
+
     if (invoice.pdfFilePath) {
-      const fileData = await downloadFileFromSupabase(
-        invoice.pdfFilePath,
-        'invoices'
-      );
 
-      const buffer = Buffer.from(await fileData.arrayBuffer());
+ console.log(
+   "PDF PATH",
+   invoice.pdfFilePath
+ );
 
-      attachments.push({
-        filename: `invoice-${invoiceNumber}.pdf`,
-        content: buffer,
-        contentType: 'application/pdf'
-      });
+ const fileData =
+  await downloadFileFromSupabase(
+   invoice.pdfFilePath,
+   'invoices'
+ );
 
-      console.log("✅ Attachment ready");
-    } else {
+ console.log(
+   "FILE DATA",
+   fileData
+ );
+
+ const buffer =
+  Buffer.from(
+    await fileData.arrayBuffer()
+  );
+
+ attachments.push({
+
+  filename:
+   `invoice-${invoiceNumber}.pdf`,
+
+  content:buffer,
+
+  contentType:
+   'application/pdf'
+
+ });
+
+     console.log("✅ Attachment ready");
+    }
+
+  else {
       console.log("⚠️ No PDF path found, sending without attachment");
     }
   } catch (error) {
@@ -324,46 +365,91 @@ export const sendInvoiceEmail = async (
     }
   `;
 
-  try {
-    console.log("🚀 Email Service Start");
+//   try {
+//     console.log("🚀 Email Service Start");
 
-    // 🔥 CHECK transporter
-    await emailTransporter.verify();
-    console.log("✅ Transporter verified");
+//     // 🔥 CHECK transporter
+//     await emailTransporter.verify();
+//     console.log("✅ Transporter verified");
 
-    console.log("📧 Sending email to:", invoice.customerEmail);
-    console.log("📎 Attachments count:", attachments.length);
+//     console.log("📧 Sending email to:", invoice.customerEmail);
+//     console.log("📎 Attachments count:", attachments.length);
 
-    const mailOptions = {
-      from: `"Solarica Energy" <${process.env.EMAIL_USER}>`,
-      to: invoice.customerEmail,
-      subject: `${subjectPrefix} #${invoiceNumber} - Solarica Energy`,
-      html: emailHtml,
-      attachments: attachments.length > 0 ? attachments : undefined
-    };
+//     const mailOptions = {
+//       from: `"Solarica Energy" <${process.env.EMAIL_USER}>`,
+//       to: invoice.customerEmail,
+//       subject: `${subjectPrefix} #${invoiceNumber} - Solarica Energy`,
+//       html: emailHtml,
+//       attachments: attachments.length > 0 ? attachments : undefined
+//     };
 
-    const info = await emailTransporter.sendMail(mailOptions);
+//     const info = await emailTransporter.sendMail(mailOptions);
 
-    console.log("✅ Email sent successfully:", info.messageId);
+//     console.log("✅ Email sent successfully:", info.messageId);
 
-    return {
-      success: true,
-      messageId: info.messageId
-    };
-  } 
+//     return {
+//       success: true,
+//       messageId: info.messageId
+//     };
+//   } 
   
-  catch (error: any) {
-  console.error("❌ REAL EMAIL ERROR:", error); // 👈 IMPORTANT
+//   catch (error: any) {
+//   console.error("❌ REAL EMAIL ERROR:", error); // 👈 IMPORTANT
 
-  // 👇 RETURN REAL ERROR MESSAGE
-  throw new Error(error.message || "Email sending failed");
+//   // 👇 RETURN REAL ERROR MESSAGE
+//   throw new Error(error.message || "Email sending failed");
+// }
+//   // catch (error) {
+//   //   console.error("❌ EMAIL SERVICE ERROR:", error);
+//   //   throw new Error("Failed to send invoice email");
+//   // }
+// };
+
+
+try {
+
+ console.log(
+  "🚀 Email Service Start"
+ );
+
+ console.log(
+  "EMAIL USER:",
+  process.env.EMAIL_USER
+ );
+
+ console.log(
+  "CUSTOMER EMAIL:",
+  invoice.customerEmail
+ );
+
+ console.log(
+  "PDF PATH:",
+  invoice.pdfFilePath
+ );
+
+ console.log(
+  "PDF URL:",
+  pdfURL
+ );
+
+ await emailTransporter.verify();
+
+ console.log(
+  "Transport OK"
+ );
+
 }
-  // catch (error) {
-  //   console.error("❌ EMAIL SERVICE ERROR:", error);
-  //   throw new Error("Failed to send invoice email");
-  // }
-};
+catch(error){
 
+ console.log(
+  "Transport Error"
+ );
+
+ console.log(error);
+
+ throw error;
+}
+}
 
 
 /**
@@ -388,6 +474,7 @@ export const sendBulkEmail = async (
 
   for (const email of recipientEmails) {
     try {
+      
       const mailOptions = {
         from: `"Solarica Energy" <${process.env.EMAIL_USER}>`,
         to: email,

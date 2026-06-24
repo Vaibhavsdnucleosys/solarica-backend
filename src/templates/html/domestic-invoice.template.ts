@@ -667,7 +667,7 @@ ${data.assignedTo?.phone || '-'}
 
                     </tr>
 
-                    ${data.items.map((item: any, i: number) => {
+                    ${(data.items ?? []).map((item:any,i:number)=>{
 
                         const taxableAmount = item.rate * item.quantity;
                         const gstAmount = item.amount - taxableAmount;

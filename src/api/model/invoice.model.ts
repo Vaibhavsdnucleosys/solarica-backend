@@ -201,6 +201,17 @@ if (leadId) {
   // Generate PDFs and upload to Supabase
   try {
     const completeInvoice = await getInvoiceByIdModel(result.id);
+    console.log(
+ "COMPLETE INVOICE"
+);
+
+console.log(
+ JSON.stringify(
+   completeInvoice,
+   null,
+   2
+ )
+);
     // Add documentTitle for PDF generation
     const invoiceForPDF = { ...completeInvoice, documentTitle };
     console.log(`[createInvoiceModel] Preparing PDF generation for ${result.id} with title: ${documentTitle}`);
@@ -220,9 +231,21 @@ if (leadId) {
       });
       result.pdfFilePath = standardPdfUrl;
       console.log(`[createInvoiceModel] Standard PDF uploaded: ${standardPdfUrl}`);
-    } catch (err: any) {
-      console.error("Standard PDF generation failed:", err);
-    }
+    } catch (err:any) {
+
+ console.log(
+  "❌ STANDARD PDF FAILED"
+ );
+
+ console.log(
+  err.message
+ );
+
+ console.log(
+  err.stack
+ );
+
+}
 
     // 2. Generate & Upload Sales PDF
     try {
@@ -1350,6 +1373,7 @@ export const sendInvoiceEmailModel = async (invoiceId: string) => {
     console.log("📦 MODEL START");
 
     const invoice = await prisma.invoice.findUnique({
+      
       where: { id: invoiceId },
       include: {
         createdBy: true,
@@ -1395,8 +1419,24 @@ export const sendInvoiceEmailModel = async (invoiceId: string) => {
     return updated;
 
   } catch (error) {
-    console.error("❌ MODEL ERROR:", error); // 👈 VERY IMPORTANT
-    throw error;
+   console.error(
+ "❌ MODEL ERROR:",
+ error
+);
+
+if(error instanceof Error){
+
+ console.log(
+  error.message
+ );
+
+ console.log(
+  error.stack
+ );
+
+}
+
+throw error;
   }
 };
 export const updateInvoiceStatusModel = async (id: string, status: string) => {

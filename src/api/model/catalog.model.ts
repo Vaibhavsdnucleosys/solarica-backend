@@ -57,17 +57,56 @@ export const getSolarStreetLightAllInOneCatalog = async () => {
 };
 
 // Get all catalogs in one call
+// export const getAllCatalogs = async () => {
+//   const [solarHeaters, solarPanels, solarInverters, decorativeLights, solarCameras, solarPumpDc, solarAcPumpController, solarStreetLightAllInOne] = await Promise.all([
+//     getSolarHeaterCatalog(),
+//     getSolarPanelCatalog(),
+//     getSolarInverterCatalog(),
+//     getDecorativeLightCatalog(),
+//     getSolarCameraCatalog(),
+//     getSolarPumpDcCatalog(),
+//     getSolarAcPumpControllerCatalog(),
+//     getSolarStreetLightAllInOneCatalog()
+//   ]);
+
+//   return {
+//     solarHeaters,
+//     solarPanels,
+//     solarInverters,
+//     decorativeLights,
+//     solarCameras,
+//     solarPumpDc,
+//     solarAcPumpController,
+//     solarStreetLightAllInOne
+//   };
+// };
+
+
 export const getAllCatalogs = async () => {
-  const [solarHeaters, solarPanels, solarInverters, decorativeLights, solarCameras, solarPumpDc, solarAcPumpController, solarStreetLightAllInOne] = await Promise.all([
-    getSolarHeaterCatalog(),
-    getSolarPanelCatalog(),
-    getSolarInverterCatalog(),
-    getDecorativeLightCatalog(),
-    getSolarCameraCatalog(),
-    getSolarPumpDcCatalog(),
-    getSolarAcPumpControllerCatalog(),
-    getSolarStreetLightAllInOneCatalog()
-  ]);
+
+  console.log("1");
+  const solarHeaters = await getSolarHeaterCatalog();
+
+  console.log("2");
+  const solarPanels = await getSolarPanelCatalog();
+
+  console.log("3");
+  const solarInverters = await getSolarInverterCatalog();
+
+  console.log("4");
+  const decorativeLights = await getDecorativeLightCatalog();
+
+  console.log("5");
+  const solarCameras = await getSolarCameraCatalog();
+
+  console.log("6");
+  const solarPumpDc = await getSolarPumpDcCatalog();
+
+  console.log("7");
+  const solarAcPumpController = await getSolarAcPumpControllerCatalog();
+
+  console.log("8");
+  const solarStreetLightAllInOne = await getSolarStreetLightAllInOneCatalog();
 
   return {
     solarHeaters,
@@ -80,4 +119,3 @@ export const getAllCatalogs = async () => {
     solarStreetLightAllInOne
   };
 };
-

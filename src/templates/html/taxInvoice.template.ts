@@ -387,7 +387,7 @@ export const buildTaxInvoiceHTML = (data: any): string => {
 
         <tbody>
 
-            ${data.items.map((item: any, index: number) => `
+        ${(data.items ?? []).map((item:any,index:number)=>`
 
                 <tr>
 

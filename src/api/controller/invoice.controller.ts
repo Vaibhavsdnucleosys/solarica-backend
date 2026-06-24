@@ -494,32 +494,68 @@ export const convertToTaxInvoice =
   //   }
   // };
 
-  export const sendInvoiceEmail = async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
+//   export const sendInvoiceEmail = async (req: Request, res: Response) => {
+//     try {
+//       const { id } = req.params;
 
-      console.log("📩 API HIT - send email");
-      console.log("Invoice ID:", id);
+//       console.log("📩 API HIT - send email");
+//       console.log("Invoice ID:", id);
 
-      // const result = await sendInvoiceEmailModel(id);
-      console.log("📄 Generating PDF First...");
+//       // const result = await sendInvoiceEmailModel(id);
+//       console.log("📄 Generating PDF First...");
 
-await generateInvoicePDF(id);
+// await generateInvoicePDF(id);
 
-console.log("📩 Sending Email...");
+// console.log("📩 Sending Email...");
 
-const result =
-  await sendInvoiceEmailModel(id);
+// const result =
+//   await sendInvoiceEmailModel(id);
 
-      res.json({
-        message: "Invoice sent successfully",
-        data: result
-      });
-    } catch (error: any) {
-      console.error("❌ CONTROLLER ERROR:", error); // 👈 ADD THIS
-      res.status(500).json({ message: error.message });
-    }
-  };
+//       res.json({
+//         message: "Invoice sent successfully",
+//         data: result
+//       });
+//     } catch (error: any) {
+//       console.error("❌ CONTROLLER ERROR:", error); // 👈 ADD THIS
+//       res.status(500).json({ message: error.message });
+//     }
+//   };
+
+export const sendInvoiceEmail = async (
+ req: Request,
+ res: Response
+)=>{
+
+ try{
+
+   const {id}=req.params;
+
+   const result=
+    await sendInvoiceEmailModel(id);
+
+   res.json({
+
+     message:
+      "Invoice sent successfully",
+
+     data:result
+
+   });
+
+ }
+ catch(error:any){
+
+   console.log(error);
+
+   res.status(500).json({
+
+    message:error.message
+
+   });
+
+ }
+
+}
 
   // Generate Invoice with Delivery Date - From Tally
   export const generateInvoiceWithDeliveryDate = async (req: Request, res: Response) => {

@@ -13,6 +13,17 @@ export const generateInvoicePDF = async (
   invoiceData: any,
   templateType: 'STANDARD' | 'SALES' | 'TAX' = 'STANDARD'
 ): Promise<Buffer> =>{
+
+    invoiceData = {
+    ...invoiceData,
+
+    items: invoiceData.items || []
+  };
+
+  console.log(
+    "PDF DEBUG",
+    invoiceData.items
+  );
     logger.info(`[PDF Service] Starting ${templateType} PDF generation for invoice: ${invoiceData.invoiceNumber}`);
 
     // [FIX] Fallback for missing amountInWords
