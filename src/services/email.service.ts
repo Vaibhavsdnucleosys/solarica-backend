@@ -39,7 +39,7 @@ export const sendQuotationEmail = async (
   pdfURL: string = '',
 ) => {
   const qtnNumber = quotation.quotation_number || quotation.id?.slice(-8).toUpperCase() || 'NEW';
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const baseUrl = process.env.BACKEND_URL || 'https://solarica-backend-02qq.onrender.com';
   const acceptUrl = `${baseUrl}/api/v1/quotations/respond/${quotation.id}?action=accepted`;
   const rejectUrl = `${baseUrl}/api/v1/quotations/respond/${quotation.id}?action=rejected`;
   const pdfPath = `quotations/2025/QTN-${quotation.id}.pdf`;
